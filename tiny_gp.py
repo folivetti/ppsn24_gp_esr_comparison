@@ -240,7 +240,7 @@ def optimize(individual, ds):
 
     def fun(theta):
         yhat = individual.compute_tree(ds[:,0], theta)[0]
-        return np.mean((yhat-ds[:,1])**2)
+        return np.mean((yhat-ds[:,-1])**2)
 
     sol = minimize(fun, t0, options = {'maxiter' : 10})
     individual.set_params(sol.x)
@@ -251,7 +251,7 @@ def fitness(individual, ds):
         return -np.inf
     t = optimize(individual, ds)
     yhat = individual.compute_tree(ds[:,0], t)[0]
-    neg_mse = -np.mean((yhat - ds[:,1])**2)
+    neg_mse = -np.mean((yhat - ds[:,-1])**2)
 
     if np.isnan(neg_mse):
         return -np.inf

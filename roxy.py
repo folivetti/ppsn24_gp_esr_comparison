@@ -217,7 +217,7 @@ class GPTree:
 
 # end class GPTree
 
-def init_population(ds): # ramped half-and-half
+def init_population(ds, err): # ramped half-and-half
     pop = []
     fits = []
     for md in range(3, MAX_DEPTH + 1):
@@ -227,36 +227,68 @@ def init_population(ds): # ramped half-and-half
             while f == -np.inf:
                 t = GPTree()
                 t.random_tree(grow = True, max_depth = md)
-                f = fitness(t, ds)
+                f = fitness(t, ds, err)
             pop.append(t)
             fits.append(f)
             grow = not grow
     return pop, fits
 
-def optimize(individual, ds):
+def negloglike_mnr(xobs, yobs, xerr, yerr, f, fprime, sig, mu_gauss, w_gauss):
+    N = len(xobs)
+    Ai = fprime
+    if (not hasattr(Ai, "__len__")) or len(Ai) == 1:
+        Ai = np.full(N, np.squeeze(np.array(Ai)))
+    Bi = f - Ai * xobs
+
+    s2 = yerr ** 2 + sig ** 2
+    den = Ai ** 2 * w_gauss ** 2 * xerr ** 2 + s2 * (w_gauss ** 2 + xerr ** 2)
+
+    neglogP = (
+        N / 2 * np.log(2 * np.pi)
+        + 1/2 * np.sum(np.log(den))
+        + 1/2 * np.sum(w_gauss ** 2 * (Ai * xobs + Bi - yobs) ** 2 / den)
+        + 1/2 * np.sum(xerr ** 2 * (Ai * mu_gauss + Bi - yobs) ** 2 / den)
+        + 1/2 * np.sum(s2 * (xobs - mu_gauss) ** 2 / den)
+    )
+
+    return neglogP
+
+def optimize(individual, ds, errs, sig, mu_gauss, w_gauss):
     t0 = individual.get_params()
     if len(t0) == 0:
         return []
 
     def fun(theta):
-        yhat = individual.compute_tree(ds[:,0], theta)[0]
-        return np.mean((yhat-ds[:,-1])**2)
+        f, _, fprime = individual.compute_tree_diff(ds[:,0], theta)
+        x = np.log10(ds[:,0])
+        y = np.log10(ds[:,1])
+        xerr = errs[:,0] / (ds[:,0] * np.log(10))
+        yerr = errs[:,1] / (ds[:,1] * np.log(10))
+        f_w = np.log10(np.abs(f))
+        fprime_w = fprime * ds[:,0] * np.log(10)
+        return negloglike_mnr(x, y, xerr, yerr, f_w, fprime_w, sig, mu_gauss, w_gauss)
 
     sol = minimize(fun, t0, options = {'maxiter' : 10})
     individual.set_params(sol.x)
     return sol.x
 
-def fitness(individual, ds):
+def fitness(individual, ds, errs, sig=0., mu_gauss=0., w_gauss=1.):
     if individual.size() > MAX_SIZE:
         return -np.inf
-    t = optimize(individual, ds)
-    yhat = individual.compute_tree(ds[:,0], t)[0]
-    neg_mse = -np.mean((yhat - ds[:,-1])**2)
+    t = optimize(individual, ds, errs, sig, mu_gauss, w_gauss)
+    f, _, fprime = individual.compute_tree_diff(ds[:,0], t)
+    x = np.log10(ds[:,0])
+    y = np.log10(ds[:,1])
+    xerr = errs[:,0] / (ds[:,0] * np.log(10))
+    yerr = errs[:,1] / (ds[:,1] * np.log(10))
+    f_w = np.log10(np.abs(f))
+    fprime_w = fprime * ds[:,0] * np.log(10)
+    neg_nll = -negloglike_mnr(x, y, xerr, yerr, f_w, fprime_w, sig, mu_gauss, w_gauss)
 
-    if np.isnan(neg_mse):
+    if np.isnan(neg_nll):
         return -np.inf
     else:
-        return neg_mse
+        return neg_nll
 
 def selection(population, fitnesses): # select one individual using tournament selection
     tournament = [rng.integers(0, len(population))
@@ -283,17 +315,18 @@ def evolve(population, fitnesses, gen):
         return evolve(population, fitnesses, gen)
     return parent1
 
-def report(population, fitnesses, ds, gen):
+def report(population, fitnesses, gen):
     for i, ind in enumerate(population):
         print(f"{gen},{i},", end="")
         ind.print_expr()
         print(f",{fitnesses[i]}")
 
 def main():
-    #dataset = generate_dataset()
-    dataset = pd.read_csv("datasets/nikuradse_2.tsv.gz", delimiter="\t").values
-    population, fitnesses = init_population(dataset)
-    #fitnesses = [fitness(individual, dataset) for individual in population]
+    rar = pd.read_csv("datasets/RAR.csv")
+    dataset = rar[['gbar','gobs']].values
+    errors = rar[['e_gbar', 'e_gobs']].values
+
+    population, fitnesses = init_population(dataset, errors)
     best_of_run_f = max(fitnesses)
     best_of_run = deepcopy(population[fitnesses.index(max(fitnesses))])
     best_of_run_gen = 0
@@ -302,9 +335,9 @@ def main():
 
     # go evolution!
     for gen in range(GENERATIONS):
-        report(population, fitnesses, dataset, gen)
+        report(population, fitnesses, gen)
         population = [evolve(population, fitnesses, gen) for _ in range(POP_SIZE)]
-        fitnesses = [fitness(individual, dataset) for individual in population]
+        fitnesses = [fitness(individual, dataset, errors) for individual in population]
         # elitism implement
         if max(fitnesses) > best_of_run_f:
             best_of_run_f = max(fitnesses)
@@ -315,7 +348,7 @@ def main():
             population[worst] = deepcopy(best_of_run)
             fitnesses[worst] = best_of_run_f
 
-    report(population, fitnesses, dataset, gen)
+    report(population, fitnesses, gen)
 
 if __name__== "__main__":
   main()
