@@ -253,37 +253,35 @@ def negloglike_mnr(xobs, yobs, xerr, yerr, f, fprime, sig, mu_gauss, w_gauss):
 
     return neglogP
 
-def optimize(individual, ds, errs, sig, mu_gauss, w_gauss):
-    t0 = individual.get_params()
-    if len(t0) == 0:
-        return []
+def optimize(individual, ds, errs):
+    t0 = individual.get_params() + list(rng.uniform(-1, 1, 3))
 
     def fun(theta):
-        f, _, fprime = individual.compute_tree_diff(ds[:,0], theta)
+        f, leftovers, fprime = individual.compute_tree_diff(ds[:,0], theta)
         x = np.log10(ds[:,0])
         y = np.log10(ds[:,1])
         xerr = errs[:,0] / (ds[:,0] * np.log(10))
         yerr = errs[:,1] / (ds[:,1] * np.log(10))
         f_w = np.log10(np.abs(f))
         fprime_w = fprime * ds[:,0] * np.log(10)
-        return negloglike_mnr(x, y, xerr, yerr, f_w, fprime_w, sig, mu_gauss, w_gauss)
+        return negloglike_mnr(x, y, xerr, yerr, f_w, fprime_w, *leftovers)
 
     sol = minimize(fun, t0, options = {'maxiter' : 10})
     individual.set_params(sol.x)
     return sol.x
 
-def fitness(individual, ds, errs, sig=0., mu_gauss=0., w_gauss=1.):
+def fitness(individual, ds, errs):
     if individual.size() > MAX_SIZE:
         return -np.inf
-    t = optimize(individual, ds, errs, sig, mu_gauss, w_gauss)
-    f, _, fprime = individual.compute_tree_diff(ds[:,0], t)
+    t = optimize(individual, ds, errs)
+    f, leftovers, fprime = individual.compute_tree_diff(ds[:,0], t)
     x = np.log10(ds[:,0])
     y = np.log10(ds[:,1])
     xerr = errs[:,0] / (ds[:,0] * np.log(10))
     yerr = errs[:,1] / (ds[:,1] * np.log(10))
     f_w = np.log10(np.abs(f))
     fprime_w = fprime * ds[:,0] * np.log(10)
-    neg_nll = -negloglike_mnr(x, y, xerr, yerr, f_w, fprime_w, sig, mu_gauss, w_gauss)
+    neg_nll = -negloglike_mnr(x, y, xerr, yerr, f_w, fprime_w, *leftovers)
 
     if np.isnan(neg_nll):
         return -np.inf
