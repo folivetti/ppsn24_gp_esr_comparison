@@ -124,7 +124,7 @@ class GPTree:
         elif arity == 1:
             l, p = self.left.compute_tree(x, p)
             return self.data(l), p
-        elif self.data[0] == 'x':
+        elif self.node_label()[0] == 'x':
             if len(x.shape) == 1:
                 return x, p
             else:
