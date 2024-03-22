@@ -22,7 +22,7 @@ GENERATIONS     = 250  # maximal number of generations to run evolution
 TOURNAMENT_SIZE = 2    # size of tournament for tournament selection
 XO_RATE         = 1.0  # crossover rate
 PROB_MUTATION   = 0.25  # per-node mutation probability
-MAX_SIZE        = 10
+MAX_SIZE        = 12
 rng = np.random.default_rng()
 
 def add(x, y): return x + y
@@ -31,15 +31,16 @@ def mul(x, y): return x * y
 def div(x, y): return x / y
 def pow(x, y): return np.abs(x)**y
 def log(x): return np.log(x)
+def abs(x): return np.abs(x)
 
 ## ATTENTION: WE CANNOT USE A FUNCTION WITH A NAME STARTING WITH 'x'
 FUNCTIONS = [add, sub, mul, div, pow]
 ARITY = defaultdict(int)
-ARITY.update({'add' : 2, 'sub' : 2, 'mul' : 2, 'div' : 2, 'pow' : 2, 'log' : 1})
+ARITY.update({'add' : 2, 'sub' : 2, 'mul' : 2, 'div' : 2, 'pow' : 2, 'log' : 1, 'abs' : 1})
 INLINE = {'add' : ' + ', 'sub' : ' - ', 'mul' : ' * ', 'div' : ' / ', 'pow' : '**'}
 TERMINALS = ['x0', 'p']
 
-derivative = {'log' : lambda x: 1/x, 'exp' : lambda x: np.exp(x)}
+derivative = {'log' : lambda x: 1/x, 'exp' : lambda x: np.exp(x), 'abs' : lambda x: x/np.abs(x)}
 def deriveOP(op, l, diffL, r, diffR):
     if op == 'add':
         return diffL + diffR
@@ -50,12 +51,13 @@ def deriveOP(op, l, diffL, r, diffR):
     elif op == 'div':
         return (diffL * r - l * diffR) / (r**2)
     elif op == 'pow':
+        #return l ** (r-1) * (r * diffL + l * np.log(l) * diffR)
         return np.abs(l) ** r * (diffR * np.log(np.abs(l)) + (r * diffL)/l)
 
 class GPTree:
-    def __init__(self, data = None, left = None, right = None):
+    def __init__(self, data = None, left = None, right = None, val = None):
         self.data  = data
-        self.val   = rng.uniform(-1, 1)
+        self.val   = rng.uniform(-1, 1) if val is None else val
         self.left  = left
         self.right = right
 
@@ -140,7 +142,7 @@ class GPTree:
             return self.data(l, r), p, deriveOP(self.node_label(), l, diffL, r, diffR)
         elif arity == 1:
             l, p, diff = self.left.compute_tree_diff(x, p)
-            return self.data(l), p, diff * derivative(self.node_label())(l)
+            return self.data(l), p, diff * derivative[self.node_label()](l)
         elif self.data[0] == 'x':
             if len(x.shape) == 1:
                 return x, p, np.ones(x.shape[0])
@@ -236,47 +238,50 @@ def init_population(ds, err): # ramped half-and-half
 def negloglike_mnr(xobs, yobs, xerr, yerr, f, fprime, sig, mu_gauss, w_gauss):
     N = len(xobs)
     Ai = fprime
-    if (not hasattr(Ai, "__len__")) or len(Ai) == 1:
-        Ai = np.full(N, np.squeeze(np.array(Ai)))
     Bi = f - Ai * xobs
 
-    s2 = yerr ** 2 + sig ** 2
-    den = Ai ** 2 * w_gauss ** 2 * xerr ** 2 + s2 * (w_gauss ** 2 + xerr ** 2)
+    s2 = np.square(yerr) + np.square(sig)
+    den = np.square(Ai) * np.square(w_gauss) * np.square(xerr) + s2 * (np.square(w_gauss) + np.square(xerr))
 
-    neglogP = (
-        N / 2 * np.log(2 * np.pi)
-        + 1/2 * np.sum(np.log(den))
-        + 1/2 * np.sum(w_gauss ** 2 * (Ai * xobs + Bi - yobs) ** 2 / den)
-        + 1/2 * np.sum(xerr ** 2 * (Ai * mu_gauss + Bi - yobs) ** 2 / den)
-        + 1/2 * np.sum(s2 * (xobs - mu_gauss) ** 2 / den)
+    neglogP = 0.5 * np.sum(
+          np.log(2 * np.pi)
+        + np.log(den)
+        + (np.square(w_gauss) * np.square(Ai * xobs + Bi - yobs)
+        + np.square(xerr) * np.square(Ai * mu_gauss + Bi - yobs)
+        + s2 * np.square(xobs - mu_gauss)) / den
     )
-
+    print(np.square(xerr) * np.square(Ai * mu_gauss + Bi - yobs))
+    print(s2 * np.square(xobs - mu_gauss))
     return neglogP
 
 def optimize(individual, ds, errs):
-    t0 = individual.get_params() + list(rng.uniform(-1, 1, 3))
+    t0 = individual.get_params() + [0.1167805804354208, -0.5166441380722491, 0.7209555672611996] # list(rng.uniform(-1, 1, 3))
 
     def fun(theta):
-        f, leftovers, fprime = individual.compute_tree_diff(ds[:,0], theta)
         x = np.log10(ds[:,0])
         y = np.log10(ds[:,1])
+        f, leftovers, fprime = individual.compute_tree_diff(ds[:,0], theta)
         xerr = errs[:,0] / (ds[:,0] * np.log(10))
         yerr = errs[:,1] / (ds[:,1] * np.log(10))
         f_w = np.log10(np.abs(f))
         fprime_w = fprime * ds[:,0] * np.log(10)
+
         return negloglike_mnr(x, y, xerr, yerr, f_w, fprime_w, *leftovers)
 
-    sol = minimize(fun, t0, options = {'maxiter' : 10})
+    print(t0, fun(t0))
+    sol = minimize(fun, t0, options = {'maxiter' : 1000}, method='L-BFGS-B')
     individual.set_params(sol.x)
+    print(sol.x, fun(sol.x))
     return sol.x
 
 def fitness(individual, ds, errs):
-    if individual.size() > MAX_SIZE:
-        return -np.inf
+    #if individual.size() > MAX_SIZE:
+    #    return -np.inf
     t = optimize(individual, ds, errs)
-    f, leftovers, fprime = individual.compute_tree_diff(ds[:,0], t)
+
     x = np.log10(ds[:,0])
     y = np.log10(ds[:,1])
+    f, leftovers, fprime = individual.compute_tree_diff(ds[:,0], t)
     xerr = errs[:,0] / (ds[:,0] * np.log(10))
     yerr = errs[:,1] / (ds[:,1] * np.log(10))
     f_w = np.log10(np.abs(f))
@@ -321,9 +326,20 @@ def report(population, fitnesses, gen):
 
 def main():
     rar = pd.read_csv("datasets/RAR.csv")
-    dataset = rar[['gbar','gobs']].values
-    errors = rar[['e_gbar', 'e_gobs']].values
+    dataset = rar[['gbar','gobs']].values[:5,:]
+    errors = rar[['e_gbar', 'e_gobs']].values[:5,:]
 
+    #abs(a0/x)**(1/(abs(x + a2)**a3 + a1));
+    #t1 = GPTree(pow, left = GPTree(div, GPTree("p", val=0.45), GPTree("x0")), right = GPTree(div, left = GPTree("p", val=1), right = GPTree(add, left=GPTree(pow, left = GPTree(add, left=GPTree("x0"), right=GPTree("p", val=-2.45)), right = GPTree("p", val=-0.02)), right=GPTree("p", val=0.05))))
+    #print(fitness(t1, dataset, errors))
+    #t1.print_expr()
+
+    # ((0.2969592764577912) + (x)) + ((x) + (-0.130300686941032))
+    t1 = GPTree(add, left = GPTree(add, left = GPTree("p", val=0.2969592764577912), right = GPTree("x0")), right = GPTree(add, left=GPTree("x0"), right=GPTree("p", val=-0.130300686941032)))
+
+    print(fitness(t1, dataset, errors))
+    t1.print_expr()
+    exit()
     population, fitnesses = init_population(dataset, errors)
     best_of_run_f = max(fitnesses)
     best_of_run = deepcopy(population[fitnesses.index(max(fitnesses))])
