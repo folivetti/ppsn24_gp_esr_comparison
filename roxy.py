@@ -219,7 +219,7 @@ class GPTree:
 
 # end class GPTree
 
-def init_population(ds, err): # ramped half-and-half
+def init_population(rar): # ramped half-and-half
     pop = []
     fits = []
     for md in range(3, MAX_DEPTH + 1):
@@ -229,42 +229,37 @@ def init_population(ds, err): # ramped half-and-half
             while f == -np.inf:
                 t = GPTree()
                 t.random_tree(grow = True, max_depth = md)
-                f = fitness(t, ds, err)
+                f = fitness(t, rar)
             pop.append(t)
             fits.append(f)
             grow = not grow
     return pop, fits
 
-def negloglike_mnr(xobs, yobs, xerr, yerr, f, fprime, sig, mu_gauss, w_gauss):
+def negloglike_mnr(xobs, yobs, xerr2, yerr2, f, fprime, sig, mu_gauss, w_gauss):
     N = len(xobs)
-    Ai = fprime
-    Bi = f - Ai * xobs
 
-    s2 = np.square(yerr) + np.square(sig)
-    den = np.square(Ai) * np.square(w_gauss) * np.square(xerr) + s2 * (np.square(w_gauss) + np.square(xerr))
+    w_gaus2 = np.square(w_gauss)
+    s2 = yerr2 + np.square(sig)
+    den = np.square(fprime) * w_gaus2 * xerr2 + s2 * (w_gaus2 + xerr2)
 
     neglogP = 0.5 * np.sum(
           np.log(2 * np.pi)
         + np.log(den)
-        + (np.square(w_gauss) * np.square(Ai * xobs + Bi - yobs)
-        + np.square(xerr) * np.square(Ai * mu_gauss + Bi - yobs)
+        + (w_gaus2 * np.square(f - yobs)
+        + xerr2 * np.square(fprime * (mu_gauss - xobs) + f - yobs)
         + s2 * np.square(xobs - mu_gauss)) / den
     )
     return neglogP
 
-def optimize(individual, ds, errs):
+def optimize(individual, rar):
     t0 = individual.get_params() + list(rng.uniform(-1, 1, 3))
 
     def fun(theta):
-        x = np.log10(ds[:,0])
-        y = np.log10(ds[:,1])
-        f, leftovers, fprime = individual.compute_tree_diff(ds[:,0], theta)
-        xerr = errs[:,0] / (ds[:,0] * np.log(10))
-        yerr = errs[:,1] / (ds[:,1] * np.log(10))
+        f, leftovers, fprime = individual.compute_tree_diff(rar['gbar'], theta)
         f_w = np.log10(np.abs(f))
-        fprime_w = fprime / (np.log(10)*f) * ds[:,0] * np.log(10) # fprime * ds[:,0] * np.log(10)
+        fprime_w = fprime / (np.log(10)*f) * rar['gbar'] * np.log(10)
 
-        return negloglike_mnr(x, y, xerr, yerr, f_w, fprime_w, *leftovers)
+        return negloglike_mnr(rar['gbar_log'], rar['gobs_log'], rar['e_gbar_log_2'], rar['e_gobs_log_2'], f_w, fprime_w, *leftovers)
 
     #print(t0, fun(t0))
     sol = minimize(fun, t0, options = {'maxiter' : 10}, method='L-BFGS-B')
@@ -272,19 +267,15 @@ def optimize(individual, ds, errs):
     #print(sol.x, fun(sol.x))
     return sol.x
 
-def fitness(individual, ds, errs):
+def fitness(individual, rar):
     if individual.size() > MAX_SIZE:
         return -np.inf
-    t = optimize(individual, ds, errs)
+    t = optimize(individual, rar)
 
-    x = np.log10(ds[:,0])
-    y = np.log10(ds[:,1])
-    f, leftovers, fprime = individual.compute_tree_diff(ds[:,0], t)
-    xerr = errs[:,0] / (ds[:,0] * np.log(10))
-    yerr = errs[:,1] / (ds[:,1] * np.log(10))
+    f, leftovers, fprime = individual.compute_tree_diff(rar['gbar'], t)
     f_w = np.log10(np.abs(f))
-    fprime_w = fprime / (np.log(10)*f) * ds[:,0] * np.log(10)
-    neg_nll = -negloglike_mnr(x, y, xerr, yerr, f_w, fprime_w, *leftovers)
+    fprime_w = fprime / (np.log(10)*f) * rar['gbar'] * np.log(10)
+    neg_nll = -negloglike_mnr(rar['gbar_log'], rar['gobs_log'], rar['e_gbar_log_2'], rar['e_gobs_log_2'], f_w, fprime_w, *leftovers)
 
     if np.isnan(neg_nll):
         return -np.inf
@@ -324,10 +315,14 @@ def report(population, fitnesses, gen):
 
 def main():
     rar = pd.read_csv("datasets/RAR.csv")
-    dataset = rar[['gbar','gobs']].values # [:5,:]
-    errors = rar[['e_gbar', 'e_gobs']].values # [:5,:]
+    #dataset = rar[['gbar','gobs']].values # [:5,:]
+    #errors = rar[['e_gbar', 'e_gobs']].values # [:5,:]
+    rar['gbar_log'] = np.log10(rar['gbar'])
+    rar['gobs_log'] = np.log10(rar['gobs'])
+    rar['e_gbar_log_2'] = np.square(rar['e_gbar'] / (rar['gbar'] * np.log(10)))
+    rar['e_gobs_log_2'] = np.square(rar['e_gobs'] / (rar['gobs'] * np.log(10)))
 
-    population, fitnesses = init_population(dataset, errors)
+    population, fitnesses = init_population(rar)
     best_of_run_f = max(fitnesses)
     best_of_run = deepcopy(population[fitnesses.index(max(fitnesses))])
     best_of_run_gen = 0
@@ -338,7 +333,7 @@ def main():
     for gen in range(GENERATIONS):
         report(population, fitnesses, gen)
         population = [evolve(population, fitnesses, gen) for _ in range(POP_SIZE)]
-        fitnesses = [fitness(individual, dataset, errors) for individual in population]
+        fitnesses = [fitness(individual, rar) for individual in population]
         # elitism implement
         if max(fitnesses) > best_of_run_f:
             best_of_run_f = max(fitnesses)
