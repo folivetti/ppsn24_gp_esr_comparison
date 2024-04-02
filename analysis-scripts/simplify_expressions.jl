@@ -22,23 +22,67 @@ function simplify_run(filename)
         open(newfilename, "w") do newfile
             lineno = 0
             for line in eachline(file)
+                line = replace(line, "," => ";")
                 lineno += 1
                 if lineno == 1
-                    println(newfile,"$line,prasedexpr,parsedhash,simplifiedexpr,simplifiedhash")
+                    println(newfile,"$line;parsedexpr;parsedhash;numparam;len;simplifiedexpr;simplifiedhash;simplifiednumparam;simplifiedlen;parsed_op_count")
                 else
-                    toks = split(line, ',')
+                    toks = split(line, ';')
                     gen = toks[1]
                     idx = toks[2]
                     exprstr = toks[3]
                     fitness = parse(Float64, toks[4])
                     (expr, coeff) = ExhaustiveSymbolicRegression.parse_infix(exprstr, ["x0", "x1"], Vector{String}(); numbers_as_parameters=true)
-                    (simplexpr, simplcoeff) = ExhaustiveSymbolicRegression.simplify(expr, coeff)
                     body = expr.args[2].args[1]
+
+                    numparam = length(coeff)
+                    len=expr_len(body)
+                    opdict = countop!(Dict{Symbol, Int32}(), body)
+                    (simplexpr, simplcoeff) = ExhaustiveSymbolicRegression.simplify(expr, coeff)
                     simplbody = simplexpr.args[2]
-                    
-                    println(newfile, "$line,$(ExhaustiveSymbolicRegression.tostring(body)),$(hash(body)),$(ExhaustiveSymbolicRegression.tostring(simplbody)),$(hash(simplbody))")
+                    simplnumparam = length(simplcoeff)
+                    simplen = expr_len(simplbody)
+                    println(newfile, "$line;$(ExhaustiveSymbolicRegression.tostring(body));$(hash(body));$numparam;$len;$(ExhaustiveSymbolicRegression.tostring(simplbody));$(hash(simplbody));$simplnumparam;$simplen;$opdict")
                 end
             end
         end
+    end
+end
+
+countop!(dict, sy::Symbol) = dict
+countop!(dict, val::Number) = dict
+function countop!(dict, expr::Expr) 
+    head = expr.head
+    if head == :call
+        op = expr.args[1] # function or operator that is called
+        freq = get!(dict, op, 0) # inserts default value if not found
+        dict[op] = freq + 1
+        for ch in expr.args[2:end]
+            countop!(dict, ch)
+        end
+    elseif head == :ref
+        # nothing to do
+    else
+        error("unexpected case")
+    end
+    dict
+end
+
+expr_len(sy::Symbol) = 1
+expr_len(val::Number) = 1
+function expr_len(expr::Expr)
+    op = expr.head
+    if op == :ref # x[1] or p[1] have length 1
+        1
+    elseif op == :call
+        # pow(abs(...), ...) is counted only as one operator
+        if expr.args[1] == :^
+            sum(expr_len, expr.args[2:end])     # ^ is not counted because abs is already counted instead
+        else
+            1 + sum(expr_len, expr.args[2:end]) # args[1] is the operator
+        end
+    else 
+        println(expr)
+        error("unexpected case")        
     end
 end
