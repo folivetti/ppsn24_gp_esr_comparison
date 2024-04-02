@@ -159,7 +159,7 @@ class GPTree:
     def random_tree(self, grow, max_depth, depth = 0, size = 0): # create random tree using either grow or full method
         if (depth < MIN_DEPTH or (depth < max_depth and not grow)) and (size < MAX_SIZE - 3):
             self.data = FUNCTIONS[rng.integers(0, len(FUNCTIONS))]
-        elif depth >= max_depth or size >= MAX_SIZE:
+        elif depth >= max_depth or size > MAX_SIZE:
             self.data = TERMINALS[rng.integers(0, len(TERMINALS))]
         else: # intermediate depth, grow
             if rng.uniform() > 0.5:
@@ -287,7 +287,7 @@ def report(population, fitnesses, ds, gen):
     for i, ind in enumerate(population):
         print(f"{gen},{i},", end="")
         ind.print_expr()
-        print(f",{fitnesses[i]}")
+        print(f",{fitnesses[i]},{ind.size()}")
 
 def main():
     #dataset = generate_dataset()
@@ -298,7 +298,7 @@ def main():
     best_of_run = deepcopy(population[fitnesses.index(max(fitnesses))])
     best_of_run_gen = 0
 
-    print("generation,individual_index,expression,fitness")
+    print("generation,individual_index,expression,fitness,nodes")
 
     # go evolution!
     for gen in range(GENERATIONS):
