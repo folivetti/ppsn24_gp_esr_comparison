@@ -22,7 +22,7 @@ GENERATIONS     = 250  # maximal number of generations to run evolution
 TOURNAMENT_SIZE = 2    # size of tournament for tournament selection
 XO_RATE         = 1.0  # crossover rate
 PROB_MUTATION   = 0.25  # per-node mutation probability
-MAX_SIZE        = 10
+MAX_SIZE        = 12
 rng = np.random.default_rng()
 
 def add(x, y): return x + y
@@ -38,7 +38,7 @@ FUNCTIONS = [add, sub, mul, div, pow, inv]
 ARITY = defaultdict(int)
 ARITY.update({'add' : 2, 'sub' : 2, 'mul' : 2, 'div' : 2, 'pow' : 2, 'log' : 1, 'inv' : 1})
 INLINE = {'add' : ' + ', 'sub' : ' - ', 'mul' : ' * ', 'div' : ' / ', 'pow' : '**', 'inv' : '1/'}
-TERMINALS = ['x0', 'x1', 'p']
+TERMINALS = ['x0', 'p']
 
 derivative = {'log' : lambda x: 1/x, 'exp' : lambda x: np.exp(x), 'inv' : lambda x: -1/(x**2)}
 def deriveOP(op, l, diffL, r, diffR):
@@ -129,7 +129,7 @@ class GPTree:
         elif arity == 1:
             l, p = self.left.compute_tree(x, p)
             return self.data(l), p
-        elif self.data[0] == 'x':
+        elif self.node_label()[0] == 'x':
             if len(x.shape) == 1:
                 return x, p
             else:
@@ -164,7 +164,7 @@ class GPTree:
     def random_tree(self, grow, max_depth, depth = 0, size = 0): # create random tree using either grow or full method
         if (depth < MIN_DEPTH or (depth < max_depth and not grow)) and (size < MAX_SIZE - 3):
             self.data = FUNCTIONS[rng.integers(0, len(FUNCTIONS))]
-        elif depth >= max_depth or size >= MAX_SIZE:
+        elif depth >= max_depth or size > MAX_SIZE:
             self.data = TERMINALS[rng.integers(0, len(TERMINALS))]
         else: # intermediate depth, grow
             if rng.uniform() > 0.5:
@@ -296,7 +296,7 @@ def report(population, fitnesses, ds, gen):
 
 def main():
     #dataset = generate_dataset()
-    dataset = pd.read_csv("datasets/nikuradse_1.csv").values
+    dataset = pd.read_csv("datasets/nikuradse_2.tsv.gz", delimiter="\t").values
     population, fitnesses = init_population(dataset)
     #fitnesses = [fitness(individual, dataset) for individual in population]
     best_of_run_f = max(fitnesses)
