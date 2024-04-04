@@ -1,23 +1,51 @@
 set terminal pdf
 
 set datafile separator ';'
+set key autotitle columnhead # skip first line
 
-set ylabel 'rank'
-set xlabel 'nll'
+set ylabel 'fraction of expressions'
+set xlabel 'logLik'
 
 set logscale y
-set xrange[-700:1000]
+set format y "%g"
 # nll over rank
 set output 'nikuradse_2_len10_distr.pdf'
-plot '../results/esr/nikuradse_2_size10/fittingresults_nikuradse_ranked.txt' using 3:1 with lines
+file='../results/esr/nikuradse_2_size10/fittingresults_nikuradse_ranked.txt'
+set xrange[-1000:700]
+stats file using 3:1 name 'nikuradse10' nooutput
+plot file using (-$3):($1/(nikuradse10_records + nikuradse10_outofrange)) with lines title "ESR"
 
 set output 'nikuradse_2_len12_distr.pdf'
-plot '../results/esr/nikuradse_2_size12/fittingresults_nikuradse_ranked.txt' using 3:1 with lines
+file = '../results/esr/nikuradse_2_size12/fittingresults_nikuradse_ranked.txt'
+stats file using 3:1 name 'nikuradse12' nooutput
+plot file using (-$3):($1/(nikuradse12_records + nikuradse12_outofrange))  with lines title "ESR"
 
-set xrange [-1100:0]
+# curves for both lengths in a single plot
+set output 'nikuradse_2_distr.pdf'
+plot '../results/esr/nikuradse_2_size10/fittingresults_nikuradse_ranked.txt' using (-$3):($1/(nikuradse10_records + nikuradse10_outofrange)) with lines title "ESR len=10",\
+     '../results/esr/nikuradse_2_size12/fittingresults_nikuradse_ranked.txt' using (-$3):($1/(nikuradse12_records + nikuradse12_outofrange)) with lines title "ESR len=12"
+
+
 set output 'rar_len10_distr.pdf'
-plot '../results/esr/rar_size10/fittingresults_rar_ranked.txt' using 3:1 with lines title 
+file = '../results/esr/rar_size10/fittingresults_rar_ranked.txt'
+set xrange [0:1100]
+stats file using 3:1 name 'rar10' nooutput
+plot file using (-$3):($1/(rar10_records + rar10_outofrange)) with lines title "ESR"
 
+set output 'rar_len12_distr.pdf'
+file='< zcat ../results/esr/rar_size12/fittingresults_rar_ranked.txt.gz'
+stats file using 3:1 name 'rar12' nooutput
+plot file using (-$3):($1/(rar12_records + rar12_outofrange)) with lines title "ESR"
+
+# curves for both lengths in a single plot
+set output 'rar_distr.pdf'
+plot '../results/esr/rar_size10/fittingresults_rar_ranked.txt' using (-$3):($1/(rar10_records + rar10_outofrange)) with lines title "ESR len=10",\
+     '< zcat ../results/esr/rar_size12/fittingresults_rar_ranked.txt.gz' using (-$3):($1/(rar12_records + rar12_outofrange)) with lines title "ESR len=12"
+
+unset logscale y
+set output 'rar_distr_yscale.pdf'
+plot '../results/esr/rar_size10/fittingresults_rar_ranked.txt' using (-$3):($1/(rar10_records + rar10_outofrange)) with lines title "ESR len=10",\
+     '< zcat ../results/esr/rar_size12/fittingresults_rar_ranked.txt.gz' using (-$3):($1/(rar12_records + rar12_outofrange)) with lines title "ESR len=12"
 
 # best ESR and GP for len 10
 unset logscale x
