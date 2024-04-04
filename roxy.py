@@ -32,15 +32,17 @@ def div(x, y): return x / y
 def pow(x, y): return np.abs(x)**y
 def log(x): return np.log(x)
 def abs(x): return np.abs(x)
+def inv(x): return np.reciprocal(x)
 
 ## ATTENTION: WE CANNOT USE A FUNCTION WITH A NAME STARTING WITH 'x'
-FUNCTIONS = [add, sub, mul, div, pow]
+FUNCTIONS = [add, sub, mul, div, pow, inv]
 ARITY = defaultdict(int)
-ARITY.update({'add' : 2, 'sub' : 2, 'mul' : 2, 'div' : 2, 'pow' : 2, 'log' : 1, 'abs' : 1})
-INLINE = {'add' : ' + ', 'sub' : ' - ', 'mul' : ' * ', 'div' : ' / ', 'pow' : '**'}
+ARITY.update({'add' : 2, 'sub' : 2, 'mul' : 2, 'div' : 2, 'pow' : 2, 'log' : 1, 'inv' : 1})
+INLINE = {'add' : ' + ', 'sub' : ' - ', 'mul' : ' * ', 'div' : ' / ', 'pow' : '**', 'inv' : '1/'}
 TERMINALS = ['x0', 'p']
 
-derivative = {'log' : lambda x: 1/x, 'exp' : lambda x: np.exp(x), 'abs' : lambda x: x/np.abs(x)}
+#derivative = {'log' : lambda x: 1/x, 'exp' : lambda x: np.exp(x), 'abs' : lambda x: x/np.abs(x)}
+derivative = {'log' : lambda x: 1/x, 'exp' : lambda x: np.exp(x), 'inv' : lambda x: -1/(x**2)}
 def deriveOP(op, l, diffL, r, diffR):
     if op == 'add':
         return diffL + diffR
@@ -80,8 +82,12 @@ class GPTree:
             print(suffix, end="")
         elif arity == 1:
             print(prefix, end="")
-            print(f"{self.node_label()}", end="")
-            self.left.print_expr("(",")")
+            if self.node_label() == "inv":
+                self.left.print_expr("1/(", ")")
+            else:
+                print(f"{self.node_label()}", end="")
+                self.left.print_expr("(",")")
+            print(suffix, end="")
         else:
             if self.node_label()[0] == 'x':
                 print(f"{prefix}{self.node_label()}{suffix}", end="")
@@ -311,7 +317,7 @@ def report(population, fitnesses, gen):
     for i, ind in enumerate(population):
         print(f"{gen},{i},", end="")
         ind.print_expr()
-        print(f",{fitnesses[i]}")
+        print(f",{fitnesses[i]},{ind.size()}")
 
 def main():
     rar = pd.read_csv("datasets/RAR.csv")
@@ -327,7 +333,7 @@ def main():
     best_of_run = deepcopy(population[fitnesses.index(max(fitnesses))])
     best_of_run_gen = 0
 
-    print("generation,individual_index,expression,fitness")
+    print("generation,individual_index,expression,fitness,nodes")
 
     # go evolution!
     for gen in range(GENERATIONS):

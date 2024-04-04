@@ -22,7 +22,7 @@ GENERATIONS     = 250  # maximal number of generations to run evolution
 TOURNAMENT_SIZE = 2    # size of tournament for tournament selection
 XO_RATE         = 1.0  # crossover rate
 PROB_MUTATION   = 0.25  # per-node mutation probability
-MAX_SIZE        = 10
+MAX_SIZE        = 12
 rng = np.random.default_rng()
 
 def add(x, y): return x + y
@@ -31,6 +31,7 @@ def mul(x, y): return x * y
 def div(x, y): return x / y
 def pow(x, y): return np.abs(x)**y
 def log(x): return np.log(x)
+def abs(x): return np.abs(x)
 def inv(x): return np.reciprocal(x)
 
 ## ATTENTION: WE CANNOT USE A FUNCTION WITH A NAME STARTING WITH 'x'
@@ -38,8 +39,9 @@ FUNCTIONS = [add, sub, mul, div, pow, inv]
 ARITY = defaultdict(int)
 ARITY.update({'add' : 2, 'sub' : 2, 'mul' : 2, 'div' : 2, 'pow' : 2, 'log' : 1, 'inv' : 1})
 INLINE = {'add' : ' + ', 'sub' : ' - ', 'mul' : ' * ', 'div' : ' / ', 'pow' : '**', 'inv' : '1/'}
-TERMINALS = ['x0', 'x1', 'p']
+TERMINALS = ['x0', 'p']
 
+#derivative = {'log' : lambda x: 1/x, 'exp' : lambda x: np.exp(x), 'abs' : lambda x: x/np.abs(x)}
 derivative = {'log' : lambda x: 1/x, 'exp' : lambda x: np.exp(x), 'inv' : lambda x: -1/(x**2)}
 def deriveOP(op, l, diffL, r, diffR):
     if op == 'add':
@@ -51,12 +53,13 @@ def deriveOP(op, l, diffL, r, diffR):
     elif op == 'div':
         return (diffL * r - l * diffR) / (r**2)
     elif op == 'pow':
+        #return l ** (r-1) * (r * diffL + l * np.log(l) * diffR)
         return np.abs(l) ** r * (diffR * np.log(np.abs(l)) + (r * diffL)/l)
 
 class GPTree:
-    def __init__(self, data = None, left = None, right = None):
+    def __init__(self, data = None, left = None, right = None, val = None):
         self.data  = data
-        self.val   = rng.uniform(-1, 1)
+        self.val   = rng.uniform(-1, 1) if val is None else val
         self.left  = left
         self.right = right
 
@@ -129,7 +132,7 @@ class GPTree:
         elif arity == 1:
             l, p = self.left.compute_tree(x, p)
             return self.data(l), p
-        elif self.data[0] == 'x':
+        elif self.node_label()[0] == 'x':
             if len(x.shape) == 1:
                 return x, p
             else:
@@ -145,7 +148,7 @@ class GPTree:
             return self.data(l, r), p, deriveOP(self.node_label(), l, diffL, r, diffR)
         elif arity == 1:
             l, p, diff = self.left.compute_tree_diff(x, p)
-            return self.data(l), p, diff * derivative(self.node_label())(l)
+            return self.data(l), p, diff * derivative[self.node_label()](l)
         elif self.data[0] == 'x':
             if len(x.shape) == 1:
                 return x, p, np.ones(x.shape[0])
@@ -222,7 +225,7 @@ class GPTree:
 
 # end class GPTree
 
-def init_population(ds): # ramped half-and-half
+def init_population(rar): # ramped half-and-half
     pop = []
     fits = []
     for md in range(3, MAX_DEPTH + 1):
@@ -232,36 +235,58 @@ def init_population(ds): # ramped half-and-half
             while f == -np.inf:
                 t = GPTree()
                 t.random_tree(grow = True, max_depth = md)
-                f = fitness(t, ds)
+                f = fitness(t, rar)
             pop.append(t)
             fits.append(f)
             grow = not grow
     return pop, fits
 
-def optimize(individual, ds):
-    t0 = individual.get_params()
-    if len(t0) == 0:
-        return []
+def negloglike_mnr(xobs, yobs, xerr2, yerr2, f, fprime, sig, mu_gauss, w_gauss):
+    N = len(xobs)
+
+    w_gaus2 = np.square(w_gauss)
+    s2 = yerr2 + np.square(sig)
+    den = np.square(fprime) * w_gaus2 * xerr2 + s2 * (w_gaus2 + xerr2)
+
+    neglogP = 0.5 * np.sum(
+          np.log(2 * np.pi)
+        + np.log(den)
+        + (w_gaus2 * np.square(f - yobs)
+        + xerr2 * np.square(fprime * (mu_gauss - xobs) + f - yobs)
+        + s2 * np.square(xobs - mu_gauss)) / den
+    )
+    return neglogP
+
+def optimize(individual, rar):
+    t0 = individual.get_params() + list(rng.uniform(-1, 1, 3))
 
     def fun(theta):
-        yhat = individual.compute_tree(ds[:,0], theta)[0]
-        return np.mean((yhat-ds[:,-1])**2)
+        f, leftovers, fprime = individual.compute_tree_diff(rar['gbar'], theta)
+        f_w = np.log10(np.abs(f))
+        fprime_w = fprime / (np.log(10)*f) * rar['gbar'] * np.log(10)
 
-    sol = minimize(fun, t0, options = {'maxiter' : 10})
+        return negloglike_mnr(rar['gbar_log'], rar['gobs_log'], rar['e_gbar_log_2'], rar['e_gobs_log_2'], f_w, fprime_w, *leftovers)
+
+    #print(t0, fun(t0))
+    sol = minimize(fun, t0, options = {'maxiter' : 10}, method='L-BFGS-B')
     individual.set_params(sol.x)
+    #print(sol.x, fun(sol.x))
     return sol.x
 
-def fitness(individual, ds):
+def fitness(individual, rar):
     if individual.size() > MAX_SIZE:
         return -np.inf
-    t = optimize(individual, ds)
-    yhat = individual.compute_tree(ds[:,0], t)[0]
-    neg_mse = -np.mean((yhat - ds[:,-1])**2)
+    t = optimize(individual, rar)
 
-    if np.isnan(neg_mse):
+    f, leftovers, fprime = individual.compute_tree_diff(rar['gbar'], t)
+    f_w = np.log10(np.abs(f))
+    fprime_w = fprime / (np.log(10)*f) * rar['gbar'] * np.log(10)
+    neg_nll = -negloglike_mnr(rar['gbar_log'], rar['gobs_log'], rar['e_gbar_log_2'], rar['e_gobs_log_2'], f_w, fprime_w, *leftovers)
+
+    if np.isnan(neg_nll):
         return -np.inf
     else:
-        return neg_mse
+        return neg_nll
 
 def selection(population, fitnesses): # select one individual using tournament selection
     tournament = [rng.integers(0, len(population))
@@ -288,17 +313,22 @@ def evolve(population, fitnesses, gen):
         return evolve(population, fitnesses, gen)
     return parent1
 
-def report(population, fitnesses, ds, gen):
+def report(population, fitnesses, gen):
     for i, ind in enumerate(population):
         print(f"{gen},{i},", end="")
         ind.print_expr()
         print(f",{fitnesses[i]},{ind.size()}")
 
 def main():
-    #dataset = generate_dataset()
-    dataset = pd.read_csv("datasets/nikuradse_1.csv").values
-    population, fitnesses = init_population(dataset)
-    #fitnesses = [fitness(individual, dataset) for individual in population]
+    rar = pd.read_csv("datasets/RAR.csv")
+    #dataset = rar[['gbar','gobs']].values # [:5,:]
+    #errors = rar[['e_gbar', 'e_gobs']].values # [:5,:]
+    rar['gbar_log'] = np.log10(rar['gbar'])
+    rar['gobs_log'] = np.log10(rar['gobs'])
+    rar['e_gbar_log_2'] = np.square(rar['e_gbar'] / (rar['gbar'] * np.log(10)))
+    rar['e_gobs_log_2'] = np.square(rar['e_gobs'] / (rar['gobs'] * np.log(10)))
+
+    population, fitnesses = init_population(rar)
     best_of_run_f = max(fitnesses)
     best_of_run = deepcopy(population[fitnesses.index(max(fitnesses))])
     best_of_run_gen = 0
@@ -307,9 +337,9 @@ def main():
 
     # go evolution!
     for gen in range(GENERATIONS):
-        report(population, fitnesses, dataset, gen)
+        report(population, fitnesses, gen)
         population = [evolve(population, fitnesses, gen) for _ in range(POP_SIZE)]
-        fitnesses = [fitness(individual, dataset) for individual in population]
+        fitnesses = [fitness(individual, rar) for individual in population]
         # elitism implement
         if max(fitnesses) > best_of_run_f:
             best_of_run_f = max(fitnesses)
@@ -320,7 +350,7 @@ def main():
             population[worst] = deepcopy(best_of_run)
             fitnesses[worst] = best_of_run_f
 
-    report(population, fitnesses, dataset, gen)
+    report(population, fitnesses, gen)
 
 if __name__== "__main__":
   main()
