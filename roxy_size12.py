@@ -22,7 +22,7 @@ GENERATIONS     = 250  # maximal number of generations to run evolution
 TOURNAMENT_SIZE = 2    # size of tournament for tournament selection
 XO_RATE         = 1.0  # crossover rate
 PROB_MUTATION   = 0.25  # per-node mutation probability
-MAX_SIZE        = 10
+MAX_SIZE        = 12
 rng = np.random.default_rng()
 
 def add(x, y): return x + y
