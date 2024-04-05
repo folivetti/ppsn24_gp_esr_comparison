@@ -14,6 +14,7 @@ import numpy as np
 from scipy.optimize import minimize
 import pandas as pd
 from collections import defaultdict
+import numba
 
 POP_SIZE        = 100   # population size
 MIN_DEPTH       = 2    # minimal initial random tree depth
@@ -241,6 +242,7 @@ def init_population(rar): # ramped half-and-half
             grow = not grow
     return pop, fits
 
+@numba.jit(nopython=True)
 def negloglike_mnr(xobs, yobs, xerr2, yerr2, f, fprime, sig, mu_gauss, w_gauss):
     N = len(xobs)
 
@@ -261,14 +263,15 @@ def optimize(individual, rar):
     t0 = individual.get_params() + list(rng.uniform(-1, 1, 3))
 
     def fun(theta):
-        f, leftovers, fprime = individual.compute_tree_diff(rar['gbar'], theta)
+        f, leftovers, fprime = individual.compute_tree_diff(rar['gbar'].values, theta)
         f_w = np.log10(np.abs(f))
-        fprime_w = fprime / (np.log(10)*f) * rar['gbar'] * np.log(10)
+        fprime_w = fprime / (np.log(10)*f) * rar['gbar'].values * np.log(10)
 
-        return negloglike_mnr(rar['gbar_log'], rar['gobs_log'], rar['e_gbar_log_2'], rar['e_gobs_log_2'], f_w, fprime_w, *leftovers)
+        return negloglike_mnr(rar['gbar_log'].values, rar['gobs_log'].values, rar['e_gbar_log_2'].values, rar['e_gobs_log_2'].values, f_w, fprime_w, *leftovers)
 
     #print(t0, fun(t0))
-    sol = minimize(fun, t0, options = {'maxiter' : 10}, method='L-BFGS-B')
+    #sol = minimize(fun, t0, options = {'maxiter' : 10}, method='L-BFGS-B')
+    sol = minimize(fun, t0, options = {'maxiter' : 10}) 
     individual.set_params(sol.x)
     #print(sol.x, fun(sol.x))
     return sol.x
@@ -278,10 +281,10 @@ def fitness(individual, rar):
         return -np.inf
     t = optimize(individual, rar)
 
-    f, leftovers, fprime = individual.compute_tree_diff(rar['gbar'], t)
+    f, leftovers, fprime = individual.compute_tree_diff(rar['gbar'].values, t)
     f_w = np.log10(np.abs(f))
-    fprime_w = fprime / (np.log(10)*f) * rar['gbar'] * np.log(10)
-    neg_nll = -negloglike_mnr(rar['gbar_log'], rar['gobs_log'], rar['e_gbar_log_2'], rar['e_gobs_log_2'], f_w, fprime_w, *leftovers)
+    fprime_w = fprime / (np.log(10)*f) * rar['gbar'].values * np.log(10)
+    neg_nll = -negloglike_mnr(rar['gbar_log'].values, rar['gobs_log'].values, rar['e_gbar_log_2'].values, rar['e_gobs_log_2'].values, f_w, fprime_w, *leftovers)
 
     if np.isnan(neg_nll):
         return -np.inf
