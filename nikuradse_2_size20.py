@@ -14,6 +14,7 @@ import numpy as np
 from scipy.optimize import minimize
 import pandas as pd
 from collections import defaultdict
+import numba
 
 POP_SIZE        = 500   # population size
 MIN_DEPTH       = 2    # minimal initial random tree depth
