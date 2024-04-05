@@ -15,21 +15,24 @@ function calculate_mse(filename)
     open(newfilename, "w") do newfile
         open(filename, "r") do file
             for line in Iterators.drop(eachline(file), 1)
-                println(line)
+                # println(line)
                 toks = split(line, ';')
                 exprstr = toks[2] 
-                nll = toks[3]
-                if startswith(toks[4], "[")
-                    coeffstr = chop(toks[4]; head=1, tail=1) # remove [ and ]
-                    coeff = map(s -> parse(Float64, s), split(coeffstr, ','))
+                nll = parse(Float64, toks[3])
+                if nll < floatmax()
+                    if startswith(toks[4], "[")
+                        coeffstr = chop(toks[4]; head=1, tail=1) # remove [ and ]
+                        coeff = map(s -> parse(Float64, s), split(coeffstr, ','))
+                    else
+                        coeff = Vector(undef, 0)
+                    end
+                    (expr, _) = parse_infix(exprstr, ["x"], ["p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p9"])
+                    expr = create_sse_expr(expr)
+                    sse = ExhaustiveSymbolicRegression.interpret(expr, X, coeff);
+                    println(newfile, "$line;$(sse/length(x))")
                 else
-                    coeff = Vector(undef, 0)
+                    println(newfile, "$line;$(floatmax())")
                 end
-                (expr, _) = parse_infix(exprstr, ["x"], ["p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p9"])
-                expr = create_sse_expr(expr)
-                sse = ExhaustiveSymbolicRegression.interpret(expr, X, coeff);
-                println(newfile, "$line;$(sse/length(x))")
-                
             end
         end
     end

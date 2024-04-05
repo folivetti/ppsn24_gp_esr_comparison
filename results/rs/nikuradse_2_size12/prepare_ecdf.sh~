@@ -1,0 +1,9 @@
+#!/bin/bash
+
+echo "rank;run;nevals;expr;nll;coeff;nll" > ecdf_data.csv
+
+for file in run*.csv
+do
+     echo -n "${file};"
+    mlr --headerless-csv-output --csv --fs ';' --from ${file} filter '$best_nll < -550' then head -n 1
+done | mlr --implicit-csv-header --headerless-csv-output --csv --fs ';' sort -n 2 then cat -n >> ecdf_data.csv
