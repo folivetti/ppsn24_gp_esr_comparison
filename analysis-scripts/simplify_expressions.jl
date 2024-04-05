@@ -2,10 +2,10 @@ using ExhaustiveSymbolicRegression # requires simplify_semantic_analysis branch
 
 
 # processes all run files in folder
-function simplify_runs(folder)
+function simplify_runs(folder; header = true, varnames=["x0", "x1"])
     for file in readdir(folder; join=true)
         if !isnothing(match(r"run[0-9]+.csv", file))
-            simplify_run(file)
+            simplify_run(file, header=header, varnames=varnames)
         end
     end
 end
@@ -16,7 +16,8 @@ end
 # example for run files: 
 # generation,individual_index,expression,fitness
 # 0,0,((x0) + (abs(0.2138350494822749)**(1.144814669216602))) + ((x0) - (x0)),-0.6395738210323725
-function simplify_run(filename)
+
+function simplify_run(filename; header=true, varnames=["x0", "x1"])
     newfilename = replace(filename, ".csv" => "") * "_simplified.csv"     
     open(filename, "r") do file
         open(newfilename, "w") do newfile
@@ -24,15 +25,16 @@ function simplify_run(filename)
             for line in eachline(file)
                 line = replace(line, "," => ";")
                 lineno += 1
-                if lineno == 1
+                if lineno == 1 && header
                     println(newfile,"$line;parsedexpr;parsedhash;numparam;len;simplifiedexpr;simplifiedhash;simplifiednumparam;simplifiedlen;parsed_op_count")
                 else
                     toks = split(line, ';')
                     gen = toks[1]
                     idx = toks[2]
                     exprstr = toks[3]
+                    exprstr = replace(exprstr, "1 / " => "1f / ") # mark 1 as a constant for ESR parser
                     fitness = parse(Float64, toks[4])
-                    (expr, coeff) = ExhaustiveSymbolicRegression.parse_infix(exprstr, ["x0", "x1"], Vector{String}(); numbers_as_parameters=true)
+                    (expr, coeff) = ExhaustiveSymbolicRegression.parse_infix(exprstr, varnames, Vector{String}(); numbers_as_parameters=true)
                     body = expr.args[2].args[1]
 
                     numparam = length(coeff)
