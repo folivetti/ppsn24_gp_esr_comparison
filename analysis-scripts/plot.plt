@@ -1,31 +1,39 @@
 set terminal pdf
 
 set datafile separator ';'
-set key autotitle columnhead # skip first line
+# set key autotitle columnhead # skip first line
 
 set ylabel 'fraction of expressions'
-set xlabel 'logLik'
+set xlabel 'MSE'
 
 set logscale y
 set format y "%g"
+set xrange [0:0.1]
 # nll over rank
 set output '../plots/nikuradse_2_len10_distr.pdf'
-file='../results/esr/nikuradse_2_size10/fittingresults_nikuradse_ranked.txt'
-set xrange[-1000:700]
-stats file using 3:1 name 'nikuradse10' nooutput
-plot file using (-$3):($1/(nikuradse10_records + nikuradse10_outofrange)) with lines title "ESR"
+file_niku_10='< mlr --fs '';'' --csv --implicit-csv-header --headerless-csv-output --from ../results/esr/nikuradse_2_size10/fittingresults_nikuradse_ranked_mse.txt sort -n 12 then cat -n'
+# set xrange[-1000:700]
+stats file_niku_10 using 13:1 name 'nikuradse10' nooutput
+plot file_niku_10 using 13:($1/(nikuradse10_records + nikuradse10_outofrange)) with lines title "ESR"
 
 set output '../plots/nikuradse_2_len12_distr.pdf'
-file = '../results/esr/nikuradse_2_size12/fittingresults_nikuradse_ranked.txt'
-stats file using 3:1 name 'nikuradse12' nooutput
-plot file using (-$3):($1/(nikuradse12_records + nikuradse12_outofrange))  with lines title "ESR"
+file_niku_12 = '< mlr --fs '';'' --csv --implicit-csv-header --headerless-csv-output --from ../results/esr/nikuradse_2_size12/fittingresults_nikuradse_ranked_mse.txt sort -n 12 then cat -n'
+stats file_niku_12 using 13:1 name 'nikuradse12' nooutput
+plot file_niku_12 using 13:($1/(nikuradse12_records + nikuradse12_outofrange))  with lines title "ESR"
 
 # curves for both lengths in a single plot
 set output '../plots/nikuradse_2_distr.pdf'
-plot '../results/esr/nikuradse_2_size10/fittingresults_nikuradse_ranked.txt' using (-$3):($1/(nikuradse10_records + nikuradse10_outofrange)) with lines title "ESR len=10",\
-     '../results/esr/nikuradse_2_size12/fittingresults_nikuradse_ranked.txt' using (-$3):($1/(nikuradse12_records + nikuradse12_outofrange)) with lines title "ESR len=12"
+plot file_niku_10 using 13:($1/(nikuradse10_records + nikuradse10_outofrange)) with lines title "ESR len=10",\
+     file_niku_12 using 13:($1/(nikuradse12_records + nikuradse12_outofrange)) with lines title "ESR len=12"
+
+set xrange [0:0.01]
+# curves for both lengths in a single plot
+set output '../plots/nikuradse_2_distr_zoom.pdf'
+plot file_niku_10 using 13:($1/(nikuradse10_records + nikuradse10_outofrange)) with lines title "ESR len=10",\
+     file_niku_12 using 13:($1/(nikuradse12_records + nikuradse12_outofrange)) with lines title "ESR len=12"
 
 
+set xlabel "LogLik"
 set output '../plots/rar_len10_distr.pdf'
 file = '../results/esr/rar_size10/fittingresults_rar_ranked.txt'
 set xrange [0:1100]
@@ -42,6 +50,12 @@ set output '../plots/rar_distr.pdf'
 plot '../results/esr/rar_size10/fittingresults_rar_ranked.txt' using (-$3):($1/(rar10_records + rar10_outofrange)) with lines title "ESR len=10",\
      '< zcat ../results/esr/rar_size12/fittingresults_rar_ranked.txt.gz' using (-$3):($1/(rar12_records + rar12_outofrange)) with lines title "ESR len=12"
 
+set xrange [950:1050]
+set output '../plots/rar_distr_zoom.pdf'
+plot '../results/esr/rar_size10/fittingresults_rar_ranked.txt' using (-$3):($1/(rar10_records + rar10_outofrange)) with lines title "ESR len=10",\
+     '< zcat ../results/esr/rar_size12/fittingresults_rar_ranked.txt.gz' using (-$3):($1/(rar12_records + rar12_outofrange)) with lines title "ESR len=12"
+
+set xrange [0:1100]
 unset logscale y
 set output '../plots/rar_distr_yscale.pdf'
 plot '../results/esr/rar_size10/fittingresults_rar_ranked.txt' using (-$3):($1/(rar10_records + rar10_outofrange)) with lines title "ESR len=10",\
