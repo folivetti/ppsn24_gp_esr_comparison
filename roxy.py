@@ -331,6 +331,10 @@ def main():
     rar['e_gbar_log_2'] = np.square(rar['e_gbar'] / (rar['gbar'] * np.log(10)))
     rar['e_gobs_log_2'] = np.square(rar['e_gobs'] / (rar['gobs'] * np.log(10)))
 
+    t = GPTree(add, left=GPTree(inv, left=GPTree(mul, left=GPTree(pow, left=GPTree('p',val=-1.068237475099997), right=GPTree(pow, GPTree('x0'), GPTree('x0'))), right=GPTree(pow, left=GPTree('x0'), right=GPTree('p', val=-0.504897963565596)))), right=GPTree('x0'))
+    fi = fitness(t, rar)
+    report([t],[fi],0)
+    '''
     population, fitnesses = init_population(rar)
     best_of_run_f = max(fitnesses)
     best_of_run = deepcopy(population[fitnesses.index(max(fitnesses))])
@@ -354,6 +358,6 @@ def main():
             fitnesses[worst] = best_of_run_f
 
     report(population, fitnesses, gen)
-
+'''
 if __name__== "__main__":
   main()
