@@ -1,33 +1,35 @@
 #!/bin/bash
 
 # best fitness found in each run
-for case in ../results/nikuradse_2_size10 ../results/nikuradse_2_size12 ../results/rar_size10 ../results/rar_size12
+for case in ../results/nikuradse_1_size10 ../results/nikuradse_1_size12 ../results/nikuradse_1_size20 \
+            ../results/nikuradse_2_size10 ../results/nikuradse_2_size12 ../results/nikuradse_2_size20 \
+            ../results/rar_size10 ../results/rar_size12 ../results/rar_size20
 do
     for id in $(seq 1 50)
     do
         echo -n "${case##.*/};${id};"
-        xz -dc ${case}/run${id}_simplified.csv.xz \
+        cat ${case}/run${id}.csv \
             | sed 's/inf/999999999/g' \
-            | mlr --csv --fs ';' --headerless-csv-output \
+            | mlr --csv --ifs ',' --ofs ';' --headerless-csv-output \
                   sort -nr fitness \
                   then head -n 1 \
                   then cut -f fitness
     done
-done
+done | mlr --implicit-csv-header --csv --fs ';' stats1 -f 3 -g 1 -a max,mean,stddev
 
 
 # best expression overall
-for case in ../results/nikuradse_2_size10 ../results/nikuradse_2_size12 ../results/rar_size10 ../results/rar_size12
+for case in ../results/nikuradse_2_size10 ../results/nikuradse_2_size12 ../results/nikuradse_2_size20 ../results/rar_size10 ../results/rar_size12 ../results/rar_size20
 do
     echo "${case}"
     for id in $(seq 1 50)
     do
-        xz -dc ${case}/run${id}_simplified.csv.xz \
+        cat ${case}/run${id}.csv \
             | sed 's/inf/999999999/g' \
-            | mlr --csv --fs ';' --headerless-csv-output \
+            | mlr --csv --ifs ',' --ofs ';' --headerless-csv-output \
                   sort -nr fitness \
                   then head -n 1 \
-                  then cut -f expression,fitness,simplexpr
+                  then cut -f expression,fitness
     done \
     | mlr --csv --fs ';' --allow-ragged-csv-input --implicit-csv-header --headerless-csv-output sort -nr 2 then head -n 5
 done

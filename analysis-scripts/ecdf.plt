@@ -13,7 +13,12 @@ set xrange[10:100000]
 
 set output "../plots/rar_len10_ecdf.pdf"
 # rank;run;nevals;expr;nll;coeff;nll 
-plot '< cd ../results/rs/rar_size10 && bash prepare_ecdf.sh -1000' using 3:1 with step title "RS nll < -1000"
+plot '< cd ../results/rs/rar_size10 && bash prepare_ecdf.sh -995' using 3:1 with step title "RS nll < -995",\
+     '< cd ../results/rar_size10 && bash prepare_ecdf.sh 995' using 3:1 with step title "GP nll < -995",\
+     '< cd ../results/rs/rar_size10 && bash prepare_ecdf.sh -1000' using 3:1 with step title "RS nll < -1000",\
+     '< cd ../results/rar_size10 && bash prepare_ecdf.sh 1000' using 3:1 with step title "GP nll < -1000",\
+     '< cd ../results/rs/rar_size10 && bash prepare_ecdf.sh -1010' using 3:1 with step title "RS nll < -1010",\
+     '< cd ../results/rar_size10 && bash prepare_ecdf.sh 1010' using 3:1 with step title "GP nll < -1010"
 
 # GP based on mse
 set output "../plots/nikuradse2_len10_ecdf.pdf"
@@ -34,7 +39,9 @@ set xrange[100:10000000]
 set output "../plots/rar_len12_ecdf.pdf"
 # rank;run;nevals;expr;nll;coeff;nll 
 plot '< cd ../results/rs/rar_size12 && bash prepare_ecdf.sh -1010' using 3:1 with step title "RS nll < -1010",\
-     '< cd ../results/rs/rar_size12 && bash prepare_ecdf.sh -1000' using 3:1 with step title "RS nll < -1000"
+     '< cd ../results/rar_size12 && bash prepare_ecdf.sh 1010' using 3:1 with step title "GP nll < -1010",\
+     '< cd ../results/rs/rar_size12 && bash prepare_ecdf.sh -1000' using 3:1 with step title "RS nll < -1000",\
+     '< cd ../results/rar_size12 && bash prepare_ecdf.sh 1000' using 3:1 with step title "GP nll < -1000"
 
 # GP based on mse
 set output "../plots/nikuradse2_len12_ecdf.pdf"
