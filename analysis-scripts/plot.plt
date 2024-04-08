@@ -9,6 +9,7 @@ set xlabel 'MSE'
 set logscale y
 set format y "%g"
 set xrange [0:0.1]
+
 # nll over rank
 set output '../plots/nikuradse_2_len10_distr.pdf'
 file_niku_10='< mlr --fs '';'' --csv --implicit-csv-header --headerless-csv-output --from ../results/esr/nikuradse_2_size10/fittingresults_nikuradse_ranked_mse.txt sort -n 12 then cat -n'
@@ -35,31 +36,31 @@ plot file_niku_10 using 13:($1/(nikuradse10_records + nikuradse10_outofrange)) w
 
 set xlabel "LogLik"
 set output '../plots/rar_len10_distr.pdf'
-file = '../results/esr/rar_size10/fittingresults_rar_ranked.txt'
+rar10file = '< zcat ../results/esr/rar_size10/fittingresults_rar_ranked.txt.gz'
 set xrange [0:1100]
-stats file using 3:1 name 'rar10' nooutput
-plot file using (-$3):($1/(rar10_records + rar10_outofrange)) with lines title "ESR"
+stats rar10file using 3:1 name 'rar10' nooutput
+plot rar10file using (-$3):($1/(rar10_records + rar10_outofrange)) with lines title "ESR"
 
 set output '../plots/rar_len12_distr.pdf'
-file='< zcat ../results/esr/rar_size12/fittingresults_rar_ranked.txt.gz'
-stats file using 3:1 name 'rar12' nooutput
-plot file using (-$3):($1/(rar12_records + rar12_outofrange)) with lines title "ESR"
+rar12file='< zcat ../results/esr/rar_size12/fittingresults_rar_ranked.txt.gz'
+stats rar12file using 3:1 name 'rar12' nooutput
+plot rar12file using (-$3):($1/(rar12_records + rar12_outofrange)) with lines title "ESR"
 
 # curves for both lengths in a single plot
 set output '../plots/rar_distr.pdf'
-plot '../results/esr/rar_size10/fittingresults_rar_ranked.txt' using (-$3):($1/(rar10_records + rar10_outofrange)) with lines title "ESR len=10",\
-     '< zcat ../results/esr/rar_size12/fittingresults_rar_ranked.txt.gz' using (-$3):($1/(rar12_records + rar12_outofrange)) with lines title "ESR len=12"
+plot rar10file using (-$3):($1/(rar10_records + rar10_outofrange)) with lines title "ESR len=10",\
+     rar12file using (-$3):($1/(rar12_records + rar12_outofrange)) with lines title "ESR len=12"
 
 set xrange [950:1050]
 set output '../plots/rar_distr_zoom.pdf'
-plot '../results/esr/rar_size10/fittingresults_rar_ranked.txt' using (-$3):($1/(rar10_records + rar10_outofrange)) with lines title "ESR len=10",\
-     '< zcat ../results/esr/rar_size12/fittingresults_rar_ranked.txt.gz' using (-$3):($1/(rar12_records + rar12_outofrange)) with lines title "ESR len=12"
+plot rar10file using (-$3):($1/(rar10_records + rar10_outofrange)) with lines title "ESR len=10",\
+     rar12file using (-$3):($1/(rar12_records + rar12_outofrange)) with lines title "ESR len=12"
 
 set xrange [0:1100]
 unset logscale y
 set output '../plots/rar_distr_yscale.pdf'
-plot '../results/esr/rar_size10/fittingresults_rar_ranked.txt' using (-$3):($1/(rar10_records + rar10_outofrange)) with lines title "ESR len=10",\
-     '< zcat ../results/esr/rar_size12/fittingresults_rar_ranked.txt.gz' using (-$3):($1/(rar12_records + rar12_outofrange)) with lines title "ESR len=12"
+plot rar10file using (-$3):($1/(rar10_records + rar10_outofrange)) with lines title "ESR len=10",\
+     rar12file using (-$3):($1/(rar12_records + rar12_outofrange)) with lines title "ESR len=12"
 unset logscale x
 unset yrange
 unset xrange
@@ -86,24 +87,12 @@ esr_nikuradse2_10_1(x)=0.3008681136542706 / (1.0 / (0.6733527565497107 + x) - 0.
 esr_nikuradse2_10_2(x)=1.0 / (0.455524443322374 + abs(-0.19111053641766093 + 0.17685213286850085 ** x) ** 1.2164067923256552)
 esr_nikuradse2_10_3(x)=2.2620522470343785 - abs(0.7727828926039556 + -1.0 / (0.3008798424323267 + x)) ** 0.6768993471343056
 
-# GP:
-# ../results/nikuradse_2_size10
-# abs(-1.3069683836971457)**(abs((x0) * (-2.716705945913883))**(abs(x0)**(-1.112439179748925)));-0.0049811343944104825
-# DUP bs(1.3069586738058596)**(abs((x0) / (0.36808356281478616))**(abs(x0)**(-1.11240685725512)));-0.004981134398866087
-# DUP abs(-1.3069716236626168)**(abs((x0) * (2.7166614358890437))**(abs(x0)**(-1.1124243436080643)));-0.004981134577047118
-# DUP abs(-1.3067257865265576)**(abs((-2.7184343702425022) * (x0))**(abs(x0)**(-1.1116639128496235)));-0.004981142731830822
-# abs(1.2527870542629684)**(abs((x0) / (-0.33751477780422395))**((1.0759659626879112) / (x0)));-0.005084652137547971
-
-gp_nikuradse2_10_1(x)=abs(-1.3069683836971457)**(abs((x) * (-2.716705945913883))**(abs(x)**(-1.112439179748925)))
-gp_nikuradse2_10_2(x)=abs(1.2527870542629684)**(abs((x) / (-0.33751477780422395))**((1.0759659626879112) / (x)))
 
 set datafile separator comma
 plot '../datasets/nikuradse_2.csv' using 1:2 with dots title "data",\
      esr_nikuradse2_10_1(x) with line title "ESR 1",\
      esr_nikuradse2_10_2(x) with line title "ESR 2",\
-     esr_nikuradse2_10_3(x) with line title "ESR 3",\
-     gp_nikuradse2_10_1(x) with line title "GP 1",\
-     gp_nikuradse2_10_2(x) with line title "GP 2"
+     esr_nikuradse2_10_3(x) with line title "ESR 3"
 
 
 
@@ -121,24 +110,11 @@ esr_nikuradse2_12_2(x)=-1.927580429721346 / (abs(x) ** -x - 4.042534139013752 **
 esr_nikuradse2_12_3(x)=2.1599179109043236 - abs(-2.101400095710107 + -1.0 / (-0.3724608457307987 - 0.0954766211313884 ** x)) ** 1.4308150149465624
 
 
-# GP
-# ../results/nikuradse_2_size12
-# (abs((x0) / (0.5046533186841542))**(abs((-0.5165541229561958) / (x0))**(x0))) - (-0.6759043416726357);-0.0020444906332730568
-# (abs((x0) / (-0.4987924830810394))**(abs(-0.4875403086629432)**((x0) * (x0)))) + (0.6822744477496968);-0.0026258027561074523
-# DUP (abs((x0) / (-0.4987929068437157))**(abs(abs(-0.4875401956145865)**(x0))**(x0))) + (0.682274879349789);-0.0026258027562581668
-# DUP (abs((x0) / (-0.49879250252904067))**(abs(abs(0.48753838350073775)**(x0))**(x0))) - (-0.6822756196746368);-0.0026258027572114255
-# DUP (abs((x0) / (-0.49879365209271304))**(abs(abs(0.4875385858241122)**(x0))**(x0))) - (-0.6822756675397282);-0.002625802758052146
-
-gp_nikuradse2_12_1(x0)=(abs((x0) / (0.5046533186841542))**(abs((-0.5165541229561958) / (x0))**(x0))) - (-0.6759043416726357)
-gp_nikuradse2_12_2(x0)=(abs((x0) / (-0.4987924830810394))**(abs(-0.4875403086629432)**((x0) * (x0)))) + (0.6822744477496968) # different local optimum
-
 set output '../plots/nikuradse_2_len12.pdf'
 plot '../datasets/nikuradse_2.csv' using 1:2 with dots title "data",\
      esr_nikuradse2_12_1(x) with line title "ESR 1",\
      esr_nikuradse2_12_2(x) with line title "ESR 2",\
-     esr_nikuradse2_12_3(x) with line title "ESR 3",\
-     gp_nikuradse2_12_1(x) with line title "GP 1",\
-     gp_nikuradse2_12_2(x) with line title "GP 2"
+     esr_nikuradse2_12_3(x) with line title "ESR 3"
 
 
 # plot RAR len 10
@@ -158,14 +134,12 @@ esr_rar_10_3(x)=1.0 / (-0.992933975821711 + 358.5992450223275 ** (0.077631495861
 
 # GP
 # ../results/rar_size10
-# (abs(x0)**(0.5003470954789366)) - ((abs(x0)**(1.0096302091187948)) * (-0.7196840793247309));999.3199769678288
-# ((0.7207325002293743) * (abs(x0)**(1.0083670760972137))) + (abs(x0)**(0.5006249074346742));999.3166880917643
-# ((abs(x0)**(1.010958451583594)) * (-0.7205129147296824)) - (abs(x0)**(0.500133835300506));999.2994685848855
-# (abs(x0)**(0.49488886131490284)) - (((x0) - (0.00715938089558915)) * (-0.7282932157698258));999.2442794405189
-# ((0.7282769010449265) * ((-0.007158291560764345) + (x0))) + (abs(x0)**(0.4948875145566325));999.244277382461
-gp_rar_10_1(x0)=(abs(x0)**(0.5003470954789366)) - ((abs(x0)**(1.0096302091187948)) * (-0.7196840793247309))
-gp_rar_10_2(x0)=((0.7207325002293743) * (abs(x0)**(1.0083670760972137))) + (abs(x0)**(0.5006249074346742))
-gp_rar_10_3(x0)=((abs(x0)**(1.010958451583594)) * (-0.7205129147296824)) - (abs(x0)**(0.500133835300506))
+gp_rar_10_1(x0)=(abs((x0) / ((1.0248715504648975) + (x0)))**(0.5116436117525405)) + (x0)# ;1000.6582349629223
+gp_rar_10_2(x0)=abs((abs(x0)**(1.7359448658474104)) + ((x0) * (1.6366017236692405)))**(0.5545169965587327)# ;999.7731795919848
+gp_rar_10_3(x0)=((abs(x0)**(1.009638071191036)) / (1.3895174271283808)) + (abs(x0)**(0.5003404880284134))# ;999.3199453476705
+gp_rar_10_4(x0)=(abs(x0)**(0.5003174451099224)) + (abs((0.7216825740524412) * (x0))**(1.009640741715287))# ;999.3197606231682
+gp_rar_10_5(x0)=((abs(x0)**(1.008494716493644)) * (-0.7211691072894346)) - (abs(x0)**(0.5005351092094006))# ;999.313904319557
+
 
 set output '../plots/rar_len10.pdf'
 plot '../datasets/RAR.csv' using 1:2 with dots title "data",\
@@ -174,7 +148,10 @@ plot '../datasets/RAR.csv' using 1:2 with dots title "data",\
      esr_rar_10_3(x) with line title "ESR 3",\
      gp_rar_10_1(x) with line title "GP 1",\
      gp_rar_10_2(x) with line title "GP 2",\
-     gp_rar_10_3(x) with line title "GP 3"
+     gp_rar_10_3(x) with line title "GP 3",\
+     gp_rar_10_4(x) with line title "GP 4",\
+     gp_rar_10_5(x) with line title "GP 5"
+     
      
 
 # plot RAR len 12
@@ -187,16 +164,11 @@ esr_rar_12_1(x)=abs(-1.7302245173940842 * abs(x) ** (-1.0 / (-2.40586258570395 +
 esr_rar_12_2(x)=abs(1.0 / (0.4071110905561187 ** (abs(-0.017525486114932452 + x) **  0.22156731497379784) - abs(x) ** -0.5016951493294719))
 esr_rar_12_3(x)=abs(-1.0252474430328333 + (abs(-0.775258498296267 + -1.0 / (-1.2719727716586922 - x)) ** x - x))
 
-# GP
-# ../results/rar_size12
-# (x0) + (abs((x0) * (abs(-0.6323290806671155)**((x0) + (0.4271235117764895))))**(0.4895904606503182));1002.3927286736971
-# (abs((-0.8127661180258463) * (x0))**(0.5031907815324396)) * (abs(-1.901942243786693)**(abs(x0)**(0.30578598628660736)));1001.6898340455355
-# (abs(1.8873868651540995)**(abs(x0)**(0.307854815607229))) * (abs((0.8251661659577438) * (x0))**(0.5041067421696162));1001.6891419377085
-# (abs(1.944236282788151)**(abs(x0)**(0.3007294271960631))) * (abs((x0) * (0.7774933091286921))**(0.5002680828385297));1001.6890177563483
-# (abs(-2.047150619941113)**(abs((0.4239843715840812) * (x0))**(0.33381681688598863))) * (abs(x0)**(0.518253146607756));1001.6462677814866
-gp_rar_12_1(x0)=(x0) + (abs((x0) * (abs(-0.6323290806671155)**((x0) + (0.4271235117764895))))**(0.4895904606503182))
-gp_rar_12_2(x0)=(abs((-0.8127661180258463) * (x0))**(0.5031907815324396)) * (abs(-1.901942243786693)**(abs(x0)**(0.30578598628660736)))
-gp_rar_12_3(x0)=(abs(1.8873868651540995)**(abs(x0)**(0.307854815607229))) * (abs((0.8251661659577438) * (x0))**(0.5041067421696162))
+gp_rar_12_1(x0)=(1/((abs(-1.068237475099997)**(abs(x0)**(x0))) * (abs(x0)**(-0.504897963565596)))) + (x0)# ;1233.1313612661527
+gp_rar_12_2(x0)=abs((abs(abs(4.222844072964582)**(abs(x0)**(0.33369976941270163)))**(0.7207247577919849)) * (x0))**(0.5182487668069332)# ;1001.6461216945945
+gp_rar_12_3(x0)=1/((abs(0.5838742092215031)**(1/(abs(x0)**(-0.3338524823157507)))) / (abs(x0)**(0.5182407085946105)))# ;1001.6461069597036
+gp_rar_12_4(x0)=(abs(x0)**(1.0299629338738667)) + ((abs(x0)**(0.5134535822829158)) * (abs(0.7208496455297746)**(x0)))# ;1001.5677067779874
+gp_rar_12_5(x0)=(abs(x0)**(0.500805723850005)) + ((((x0) * (0.0037294403871237346)) + (0.7092507738885867)) * (x0))# ;1000.5537193284138
 
 set output '../plots/rar_len12.pdf'
 plot '../datasets/RAR.csv' using 1:2 with dots title "data",\
@@ -205,6 +177,24 @@ plot '../datasets/RAR.csv' using 1:2 with dots title "data",\
      esr_rar_12_3(x) with line title "ESR 3",\
      gp_rar_12_1(x) with line title "GP 1",\
      gp_rar_12_2(x) with line title "GP 2",\
-     gp_rar_12_3(x) with line title "GP 3"
+     gp_rar_12_3(x) with line title "GP 3",\
+     gp_rar_12_4(x) with line title "GP 4",\
+     gp_rar_12_5(x) with line title "GP 5"
+
+unset output
+
+gp_rar_20_1(x0)=(abs((1/((-0.018308626060225968) + (x0))) + ((x0) + (abs((1/(1.3538711863465862)) * (x0))**(-1.8409155624166043))))**(-0.25614769350553623)) + (1/(1/(x0)))#;1007.0805096573035
+gp_rar_20_2(x0)=(abs(x0)**(1.016229740692845)) + (abs((x0) / ((abs(1.7402526777206728)**(x0)) + (0.19717447093113658)))**(0.4884695724721664))#;1003.0324616656919
+gp_rar_20_3(x0)=(abs(((1.1478144138740694) / (x0)) + ((x0) / (abs((x0) + (1/(1/(-0.02194539046553311))))**(0.6848382108575416))))**(-0.4980520742970994)) + (x0)#;1003.0110967091643
+gp_rar_20_4(x0)=((x0) * (1.047444498466007)) + ((abs(-0.7599258838109894)**(x0)) * (abs((0.7780900274477337) * (x0))**(0.4841948791000158)))#;1002.9799779316046
+gp_rar_20_5(x0)=(((abs(x0)**(0.41662314343949985)) + (x0)) / (abs(((((-1.3684231303494516) * (x0)) + (x0)) + (1.3618529284816028)) + (x0))**(1.4792386340777637))) + (x0)#;1002.8964125207594
+
+set output '../plots/rar_len20.pdf'
+plot '../datasets/RAR.csv' using 1:2 with dots title "data",\
+     gp_rar_20_1(x) with line title "GP 1",\
+     gp_rar_20_2(x) with line title "GP 2",\
+     gp_rar_20_3(x) with line title "GP 3",\
+     gp_rar_20_4(x) with line title "GP 4",\
+     gp_rar_20_5(x) with line title "GP 5"
 
 unset output
