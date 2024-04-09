@@ -32,7 +32,6 @@ function simplify_run(filename; header=true, varnames=["x0", "x1"])
                     gen = toks[1]
                     idx = toks[2]
                     exprstr = toks[3]
-                    exprstr = replace(exprstr, "1 / " => "1f / ") # mark 1 as a constant for ESR parser
                     fitness = parse(Float64, toks[4])
                     (expr, coeff) = ExhaustiveSymbolicRegression.parse_infix(exprstr, varnames, Vector{String}(); numbers_as_parameters=true)
                     body = expr.args[2].args[1]
