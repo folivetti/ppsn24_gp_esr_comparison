@@ -8,10 +8,11 @@ do
 			       --objective mse \
 			       --enable-symbols add,mul,div,sub,inv,powabs \
 			       --generations 250 \
-			       --population-size 100 --pool-size 100 \
-			       --female-selector tournament:2 --male-selector tournament:2 \
+			       --population-size 500 --pool-size 500 \
+			       --evaluations 5000000 \
+			       --female-selector tournament:4 --male-selector tournament:4 \
 			       --linear-scaling=false \
-			       --iterations 50 \
+			       --iterations 10 \
 			       --show-pareto-front \
 			       --maxlength 13 \
 			       --creator-maxlength 13 \
