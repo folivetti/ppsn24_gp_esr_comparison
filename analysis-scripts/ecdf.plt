@@ -70,3 +70,12 @@ plot '< cd ../results/nikuradse_2_size20 && bash prepare_ecdf.sh -0.01'         
      '< cd ../results/nikuradse_2_size20 && bash prepare_ecdf.sh -0.0015'        using 2:1 with step lc 4        title "GP MSE < 0.0015",\
      '< cd ../results/operon/nikuradse_2_size20 && bash prepare_ecdf.sh -0.0015' using 2:1 with step lc 4 dt "." title "Operon MSE < 0.0015",\
 
+  
+
+# mixed lengths
+# GP based on mse
+set output "../plots/nikuradse2_mixed_len_ecdf.pdf"
+plot '< cd ../results/rs/nikuradse_2_size12 && bash prepare_ecdf.sh 0.0015'      using 2:1 with step lc 1        title "RS (12) MSE < 0.0015",\
+     '< cd ../results/operon/nikuradse_2_size20 && bash prepare_ecdf.sh -0.0015' using 2:1 with step lc 2        title "Operon (20) MSE < 0.0015",\
+     '< cd ../results/nikuradse_2_size20 && bash prepare_ecdf.sh -0.0015'        using 2:1 with step lc 3        title "GP (20) MSE < 0.0015"
+
