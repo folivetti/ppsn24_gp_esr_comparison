@@ -3,6 +3,7 @@
 # TODO repeat 50 times
 for i in $(seq 1 50)
 do
+    echo "dummy,evals,expr,fitness" > run${i}.csv
     ~/operon/build/cli/operon_nsgp --dataset ../../../datasets/nikuradse_2.csv --target target --train 0:361 \
 			       --objective mse \
 			       --enable-symbols add,mul,div,sub,inv,powabs \
@@ -13,5 +14,6 @@ do
 			       --iterations 50 \
 			       --show-pareto-front \
 			       --maxlength 6 \
-			       | grep -E '[0-9]+;' > run${i}.csv
+			       --threads 1 \
+			       | grep -E '^[0-9]+,' >> run${i}.csv &
 done

@@ -22,19 +22,20 @@ plot '< cd ../results/rs/rar_size10 && bash prepare_ecdf.sh -995' using 3:1 with
 
 # GP based on mse
 set output "../plots/nikuradse2_len10_ecdf.pdf"
-plot '< cd ../results/nikuradse_2_size10 && bash prepare_ecdf.sh -0.02'        using 2:1 with step lc 1        title "GP MSE < 0.0200",\
-     '< cd ../results/operon/nikuradse_2_size10 && bash prepare_ecdf.sh 0.02'  using 2:1 with step lc 1 dt "." title "Operon MSE < 0.0200",\
-     '< cd ../results/rs/nikuradse_2_size10 && bash prepare_ecdf.sh 0.02'      using 2:1 with step lc 1 dt "-" title "RS MSE < 0.0200",\
-     '< cd ../results/nikuradse_2_size10 && bash prepare_ecdf.sh -0.01'        using 2:1 with step lc 2        title "GP MSE < 0.0100",\
-     '< cd ../results/operon/nikuradse_2_size10 && bash prepare_ecdf.sh 0.01'  using 2:1 with step lc 2 dt "." title "Operon MSE < 0.0100",\
-     '< cd ../results/rs/nikuradse_2_size10 && bash prepare_ecdf.sh 0.01'      using 2:1 with step lc 2 dt "-" title "RS MSE < 0.0100",\
-     '< cd ../results/nikuradse_2_size10 && bash prepare_ecdf.sh -0.005'       using 2:1 with step lc 3        title "GP MSE < 0.0050",\
-     '< cd ../results/operon/nikuradse_2_size10 && bash prepare_ecdf.sh 0.005' using 2:1 with step lc 3 dt "." title "Operon MSE < 0.0050",\
-     '< cd ../results/rs/nikuradse_2_size10 && bash prepare_ecdf.sh 0.005'     using 2:1 with step lc 3 dt "-" title "RS MSE < 0.0050",\
-     '< cd ../results/rs/nikuradse_2_size10 && bash prepare_ecdf.sh 0.0027'    using 2:1 with step lc 4 dt "-" title "RS MSE < 0.0027 (best)"
-
+plot '< cd ../results/nikuradse_2_size10 && bash prepare_ecdf.sh -0.02'         using 2:1 with step lc 1        title "GP MSE < 0.0200",\
+     '< cd ../results/operon/nikuradse_2_size10 && bash prepare_ecdf.sh -0.02'  using 2:1 with step lc 1 dt "." title "Operon MSE < 0.0200",\
+     '< cd ../results/rs/nikuradse_2_size10 && bash prepare_ecdf.sh 0.02'       using 2:1 with step lc 1 dt "-" title "RS MSE < 0.0200",\
+     '< cd ../results/nikuradse_2_size10 && bash prepare_ecdf.sh -0.01'         using 2:1 with step lc 2        title "GP MSE < 0.0100",\
+     '< cd ../results/operon/nikuradse_2_size10 && bash prepare_ecdf.sh -0.01'  using 2:1 with step lc 2 dt "." title "Operon MSE < 0.0100",\
+     '< cd ../results/rs/nikuradse_2_size10 && bash prepare_ecdf.sh 0.01'       using 2:1 with step lc 2 dt "-" title "RS MSE < 0.0100",\
+     '< cd ../results/nikuradse_2_size10 && bash prepare_ecdf.sh -0.005'        using 2:1 with step lc 3        title "GP MSE < 0.0050",\
+     '< cd ../results/operon/nikuradse_2_size10 && bash prepare_ecdf.sh -0.005' using 2:1 with step lc 3 dt "." title "Operon MSE < 0.0050",\
+     '< cd ../results/rs/nikuradse_2_size10 && bash prepare_ecdf.sh 0.005'      using 2:1 with step lc 3 dt "-" title "RS MSE < 0.0050",\
+     '< cd ../results/rs/nikuradse_2_size10 && bash prepare_ecdf.sh 0.0027'     using 2:1 with step lc 4 dt "-" title "RS MSE < 0.0027 (best)"
 
 set xrange[100:10000000]
+
+# LEN 12
 
 set output "../plots/rar_len12_ecdf.pdf"
 # rank;run;nevals;expr;nll;coeff;nll 
@@ -45,14 +46,27 @@ plot '< cd ../results/rs/rar_size12 && bash prepare_ecdf.sh -1010' using 3:1 wit
 
 # GP based on mse
 set output "../plots/nikuradse2_len12_ecdf.pdf"
-plot '< cd ../results/nikuradse_2_size12 && bash prepare_ecdf.sh -0.01'        using 2:1 with step lc 1        title "GP MSE < 0.0100",\
-     '< cd ../results/operon/nikuradse_2_size12 && bash prepare_ecdf.sh 0.01'  using 2:1 with step lc 1 dt "." title "Operon MSE < 0.0100",\
-     '< cd ../results/rs/nikuradse_2_size12 && bash prepare_ecdf.sh 0.01'      using 2:1 with step lc 1 dt "-" title "RS MSE < 0.0100", \
-     '< cd ../results/nikuradse_2_size12 && bash prepare_ecdf.sh -0.005'       using 2:1 with step lc 2        title "GP MSE < 0.0050",\
-     '< cd ../results/operon/nikuradse_2_size12 && bash prepare_ecdf.sh 0.005' using 2:1 with step lc 2 dt "." title "Operon MSE < 0.0050",\
-     '< cd ../results/rs/nikuradse_2_size12 && bash prepare_ecdf.sh 0.005'     using 2:1 with step lc 2 dt "-" title "RS MSE < 0.0050",\
-     '< cd ../results/nikuradse_2_size12 && bash prepare_ecdf.sh -0.002'       using 2:1 with step lc 3        title "GP MSE < 0.0020",\
-     '< cd ../results/operon/nikuradse_2_size12 && bash prepare_ecdf.sh 0.002' using 2:1 with step lc 3 dt "." title "Operon MSE < 0.0020",\
-     '< cd ../results/rs/nikuradse_2_size12 && bash prepare_ecdf.sh 0.002'     using 2:1 with step lc 3 dt "-" title "RS MSE < 0.0020",\
-     '< cd ../results/rs/nikuradse_2_size12 && bash prepare_ecdf.sh 0.0015'    using 2:1 with step lc 4 dt "-" title "RS MSE < 0.0015 (best)"
+plot '< cd ../results/nikuradse_2_size12 && bash prepare_ecdf.sh -0.01'         using 2:1 with step lc 1        title "GP MSE < 0.0100",\
+     '< cd ../results/operon/nikuradse_2_size12 && bash prepare_ecdf.sh -0.01'  using 2:1 with step lc 1 dt "." title "Operon MSE < 0.0100",\
+     '< cd ../results/rs/nikuradse_2_size12 && bash prepare_ecdf.sh 0.01'       using 2:1 with step lc 1 dt "-" title "RS MSE < 0.0100", \
+     '< cd ../results/nikuradse_2_size12 && bash prepare_ecdf.sh -0.005'        using 2:1 with step lc 2        title "GP MSE < 0.0050",\
+     '< cd ../results/operon/nikuradse_2_size12 && bash prepare_ecdf.sh -0.005' using 2:1 with step lc 2 dt "." title "Operon MSE < 0.0050",\
+     '< cd ../results/rs/nikuradse_2_size12 && bash prepare_ecdf.sh 0.005'      using 2:1 with step lc 2 dt "-" title "RS MSE < 0.0050",\
+     '< cd ../results/nikuradse_2_size12 && bash prepare_ecdf.sh -0.002'        using 2:1 with step lc 3        title "GP MSE < 0.0020",\
+     '< cd ../results/operon/nikuradse_2_size12 && bash prepare_ecdf.sh -0.002' using 2:1 with step lc 3 dt "." title "Operon MSE < 0.0020",\
+     '< cd ../results/rs/nikuradse_2_size12 && bash prepare_ecdf.sh 0.002'      using 2:1 with step lc 3 dt "-" title "RS MSE < 0.0020",\
+     '< cd ../results/rs/nikuradse_2_size12 && bash prepare_ecdf.sh 0.0015'     using 2:1 with step lc 4 dt "-" title "RS MSE < 0.0015 (best)"
      
+
+# LEN 20
+# GP based on mse
+set output "../plots/nikuradse2_len20_ecdf.pdf"
+plot '< cd ../results/nikuradse_2_size20 && bash prepare_ecdf.sh -0.01'          using 2:1 with step lc 1        title "GP MSE < 0.010",\
+     '< cd ../results/operon/nikuradse_2_size20 && bash prepare_ecdf.sh -0.01'   using 2:1 with step lc 1 dt "." title "Operon MSE < 0.010",\
+     '< cd ../results/nikuradse_2_size20 && bash prepare_ecdf.sh -0.005'         using 2:1 with step lc 2        title "GP MSE < 0.005",\
+     '< cd ../results/operon/nikuradse_2_size20 && bash prepare_ecdf.sh -0.005'  using 2:1 with step lc 2 dt "." title "Operon MSE < 0.005",\
+     '< cd ../results/nikuradse_2_size20 && bash prepare_ecdf.sh -0.003'         using 2:1 with step lc 3        title "GP MSE < 0.003",\
+     '< cd ../results/operon/nikuradse_2_size20 && bash prepare_ecdf.sh -0.003'  using 2:1 with step lc 3 dt "." title "Operon MSE < 0.003",\
+     '< cd ../results/nikuradse_2_size20 && bash prepare_ecdf.sh -0.0015'        using 2:1 with step lc 4        title "GP MSE < 0.0015",\
+     '< cd ../results/operon/nikuradse_2_size20 && bash prepare_ecdf.sh -0.0015' using 2:1 with step lc 4 dt "." title "Operon MSE < 0.0015",\
+
