@@ -3,65 +3,65 @@ set terminal pdf
 set datafile separator ';'
 # set key autotitle columnhead # skip first line
 
-set ylabel 'fraction of expressions'
-set xlabel 'MSE'
+set xlabel 'fraction of expressions'
+set ylabel 'MSE'
 
-set logscale y
-set format y "%g"
-set xrange [0:0.1]
+set logscale x
+set format x "%g"
+set yrange [0:0.1]
 
 # nll over rank
 set output '../plots/nikuradse_2_len10_distr.pdf'
 file_niku_10='< mlr --fs '';'' --csv --implicit-csv-header --headerless-csv-output --from ../results/esr/nikuradse_2_size10/fittingresults_nikuradse_ranked_mse.txt.gz sort -n 12 then cat -n'
 # set xrange[-1000:700]
-stats file_niku_10 using 13:1 name 'nikuradse10' nooutput
-plot file_niku_10 using 13:($1/(nikuradse10_records + nikuradse10_outofrange)) with lines title "ESR"
+stats file_niku_10 using 1:13 name 'nikuradse10' nooutput
+plot file_niku_10 using ($1/(nikuradse10_records + nikuradse10_outofrange)):13 with lines title "ESR"
 
 set output '../plots/nikuradse_2_len12_distr.pdf'
 file_niku_12 = '< mlr --fs '';'' --csv --implicit-csv-header --headerless-csv-output --from ../results/esr/nikuradse_2_size12/fittingresults_nikuradse_ranked_mse.txt.gz sort -n 12 then cat -n'
-stats file_niku_12 using 13:1 name 'nikuradse12' nooutput
-plot file_niku_12 using 13:($1/(nikuradse12_records + nikuradse12_outofrange))  with lines title "ESR"
+stats file_niku_12 using 1:13 name 'nikuradse12' nooutput
+plot file_niku_12 using ($1/(nikuradse12_records + nikuradse12_outofrange)):13  with lines title "ESR"
 
 # curves for both lengths in a single plot
 set output '../plots/nikuradse_2_distr.pdf'
-plot file_niku_10 using 13:($1/(nikuradse10_records + nikuradse10_outofrange)) with lines title "ESR len=10",\
-     file_niku_12 using 13:($1/(nikuradse12_records + nikuradse12_outofrange)) with lines title "ESR len=12"
+plot file_niku_10 using ($1/(nikuradse10_records + nikuradse10_outofrange)):13 with lines title "ESR len=10",\
+     file_niku_12 using ($1/(nikuradse12_records + nikuradse12_outofrange)):13 with lines title "ESR len=12"
 
-set xrange [0:0.01]
+set yrange [0:0.01]
 # curves for both lengths in a single plot
 set output '../plots/nikuradse_2_distr_zoom.pdf'
-plot file_niku_10 using 13:($1/(nikuradse10_records + nikuradse10_outofrange)) with lines title "ESR len=10",\
-     file_niku_12 using 13:($1/(nikuradse12_records + nikuradse12_outofrange)) with lines title "ESR len=12"
+plot file_niku_10 using ($1/(nikuradse10_records + nikuradse10_outofrange)):13 with lines title "ESR len=10",\
+     file_niku_12 using ($1/(nikuradse12_records + nikuradse12_outofrange)):13 with lines title "ESR len=12"
 
 
-set xlabel "LogLik"
+set ylabel "LogLik"
 set output '../plots/rar_len10_distr.pdf'
 rar10file = '< zcat ../results/esr/rar_size10/fittingresults_rar_ranked.txt.gz'
-set xrange [0:1100]
-stats rar10file using 3:1 name 'rar10' nooutput
-plot rar10file using (-$3):($1/(rar10_records + rar10_outofrange)) with lines title "ESR"
+set yrange [0:1100]
+stats rar10file using 1:3 name 'rar10' nooutput
+plot rar10file using ($1/(rar10_records + rar10_outofrange)):(-$3) with lines title "ESR"
 
 set output '../plots/rar_len12_distr.pdf'
 rar12file='< zcat ../results/esr/rar_size12/fittingresults_rar_ranked.txt.gz'
-stats rar12file using 3:1 name 'rar12' nooutput
-plot rar12file using (-$3):($1/(rar12_records + rar12_outofrange)) with lines title "ESR"
+stats rar12file using 1:3 name 'rar12' nooutput
+plot rar12file using ($1/(rar12_records + rar12_outofrange)):(-$3) with lines title "ESR"
 
 # curves for both lengths in a single plot
 set output '../plots/rar_distr.pdf'
-plot rar10file using (-$3):($1/(rar10_records + rar10_outofrange)) with lines title "ESR len=10",\
-     rar12file using (-$3):($1/(rar12_records + rar12_outofrange)) with lines title "ESR len=12"
+plot rar10file using ($1/(rar10_records + rar10_outofrange)):(-$3) with lines title "ESR len=10",\
+     rar12file using ($1/(rar12_records + rar12_outofrange)):(-$3) with lines title "ESR len=12"
 
-set xrange [950:1050]
+set yrange [950:1050]
 set output '../plots/rar_distr_zoom.pdf'
-plot rar10file using (-$3):($1/(rar10_records + rar10_outofrange)) with lines title "ESR len=10",\
-     rar12file using (-$3):($1/(rar12_records + rar12_outofrange)) with lines title "ESR len=12"
+plot rar10file using ($1/(rar10_records + rar10_outofrange)):(-$3) with lines title "ESR len=10",\
+     rar12file using ($1/(rar12_records + rar12_outofrange)):(-$3) with lines title "ESR len=12"
 
-set xrange [0:1100]
-unset logscale y
-set output '../plots/rar_distr_yscale.pdf'
-plot rar10file using (-$3):($1/(rar10_records + rar10_outofrange)) with lines title "ESR len=10",\
-     rar12file using (-$3):($1/(rar12_records + rar12_outofrange)) with lines title "ESR len=12"
+set yrange [0:1100]
 unset logscale x
+set output '../plots/rar_distr_yscale.pdf'
+plot rar10file using ($1/(rar10_records + rar10_outofrange)):(-$3) with lines title "ESR len=10",\
+     rar12file using ($1/(rar12_records + rar12_outofrange)):(-$3) with lines title "ESR len=12"
+unset logscale y
 unset yrange
 unset xrange
 
