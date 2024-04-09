@@ -12,13 +12,13 @@ set xrange [0:0.1]
 
 # nll over rank
 set output '../plots/nikuradse_2_len10_distr.pdf'
-file_niku_10='< mlr --fs '';'' --csv --implicit-csv-header --headerless-csv-output --from ../results/esr/nikuradse_2_size10/fittingresults_nikuradse_ranked_mse.txt sort -n 12 then cat -n'
+file_niku_10='< mlr --fs '';'' --csv --implicit-csv-header --headerless-csv-output --from ../results/esr/nikuradse_2_size10/fittingresults_nikuradse_ranked_mse.txt.gz sort -n 12 then cat -n'
 # set xrange[-1000:700]
 stats file_niku_10 using 13:1 name 'nikuradse10' nooutput
 plot file_niku_10 using 13:($1/(nikuradse10_records + nikuradse10_outofrange)) with lines title "ESR"
 
 set output '../plots/nikuradse_2_len12_distr.pdf'
-file_niku_12 = '< mlr --fs '';'' --csv --implicit-csv-header --headerless-csv-output --from ../results/esr/nikuradse_2_size12/fittingresults_nikuradse_ranked_mse.txt sort -n 12 then cat -n'
+file_niku_12 = '< mlr --fs '';'' --csv --implicit-csv-header --headerless-csv-output --from ../results/esr/nikuradse_2_size12/fittingresults_nikuradse_ranked_mse.txt.gz sort -n 12 then cat -n'
 stats file_niku_12 using 13:1 name 'nikuradse12' nooutput
 plot file_niku_12 using 13:($1/(nikuradse12_records + nikuradse12_outofrange))  with lines title "ESR"
 
@@ -164,11 +164,12 @@ esr_rar_12_1(x)=abs(-1.7302245173940842 * abs(x) ** (-1.0 / (-2.40586258570395 +
 esr_rar_12_2(x)=abs(1.0 / (0.4071110905561187 ** (abs(-0.017525486114932452 + x) **  0.22156731497379784) - abs(x) ** -0.5016951493294719))
 esr_rar_12_3(x)=abs(-1.0252474430328333 + (abs(-0.775258498296267 + -1.0 / (-1.2719727716586922 - x)) ** x - x))
 
-gp_rar_12_1(x0)=(1/((abs(-1.068237475099997)**(abs(x0)**(x0))) * (abs(x0)**(-0.504897963565596)))) + (x0)# ;1233.1313612661527
-gp_rar_12_2(x0)=abs((abs(abs(4.222844072964582)**(abs(x0)**(0.33369976941270163)))**(0.7207247577919849)) * (x0))**(0.5182487668069332)# ;1001.6461216945945
-gp_rar_12_3(x0)=1/((abs(0.5838742092215031)**(1/(abs(x0)**(-0.3338524823157507)))) / (abs(x0)**(0.5182407085946105)))# ;1001.6461069597036
-gp_rar_12_4(x0)=(abs(x0)**(1.0299629338738667)) + ((abs(x0)**(0.5134535822829158)) * (abs(0.7208496455297746)**(x0)))# ;1001.5677067779874
-gp_rar_12_5(x0)=(abs(x0)**(0.500805723850005)) + ((((x0) * (0.0037294403871237346)) + (0.7092507738885867)) * (x0))# ;1000.5537193284138
+gp_rar_12_1(x0)=abs((abs(abs(4.222844072964582)**(abs(x0)**(0.33369976941270163)))**(0.7207247577919849)) * (x0))**(0.5182487668069332) # ;1001.6461216945945
+gp_rar_12_2(x0)=1/((abs(0.5838742092215031)**(1/(abs(x0)**(-0.3338524823157507)))) / (abs(x0)**(0.5182407085946105))) # ;1001.6461069597036
+gp_rar_12_3(x0)=(abs(x0)**(1.0299629338738667)) + ((abs(x0)**(0.5134535822829158)) * (abs(0.7208496455297746)**(x0))) # ;1001.5677067779874
+gp_rar_12_4(x0)=(abs(x0)**(0.500805723850005)) + ((((x0) * (0.0037294403871237346)) + (0.7092507738885867)) * (x0)) # ;1000.5537193284138
+gp_rar_12_5(x0)=((abs(x0)**(abs(x0)**(0.009973006888630193))) * (0.7103373454583255)) + (abs(x0)**(0.5056696172350481)) # ;1000.3083447583384
+
 
 set output '../plots/rar_len12.pdf'
 plot '../datasets/RAR.csv' using 1:2 with dots title "data",\
