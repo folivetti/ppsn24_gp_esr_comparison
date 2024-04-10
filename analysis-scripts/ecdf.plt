@@ -61,6 +61,12 @@ plot '< cd ../results/nikuradse_2_size12 && bash prepare_ecdf.sh -0.01'         
 # LEN 20
 set xrange[10:100000]
 
+set output "../plots/rar_len20_ecdf.pdf"
+# rank;run;nevals;expr;nll;coeff;nll 
+plot '< cd ../results/rar_size20 && bash prepare_ecdf.sh 1005'     using 2:($1/50) with step lc 1 title "GP nll < -1005",\
+     '< cd ../results/rar_size20 && bash prepare_ecdf.sh 1000'     using 2:($1/50) with step lc 2 title "GP nll < -1000"
+
+
 # GP based on mse
 set output "../plots/nikuradse2_len20_ecdf.pdf"
 plot '< cd ../results/nikuradse_2_size20 && bash prepare_ecdf.sh -0.01'          using 2:($1/50) with step lc 1        title "GP MSE < 0.010",\
