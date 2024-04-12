@@ -19,22 +19,55 @@ function calculate_mse(filename)
                 toks = split(line, ';')
                 exprstr = toks[2] 
                 nll = parse(Float64, toks[3])
-                if nll < floatmax()
-                    if startswith(toks[4], "[")
-                        coeffstr = chop(toks[4]; head=1, tail=1) # remove [ and ]
-                        coeff = map(s -> parse(Float64, s), split(coeffstr, ','))
-                    else
-                        coeff = Vector(undef, 0)
-                    end
-                    (expr, _) = parse_infix(exprstr, ["x"], ["p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p9"])
-                    expr = create_sse_expr(expr)
-                    sse = ExhaustiveSymbolicRegression.interpret(expr, X, coeff);
-                    println(newfile, "$line;$(sse/length(x))")
+                (expr, _) = parse_infix(exprstr, ["x"], ["p1", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p9", "p"])
+                # dump(expr)
+
+                exprlen = expr_len(expr)
+                exprdepth = expr_depth(expr)
+                expr = create_sse_expr(expr)
+                if startswith(toks[4], "[")
+                    coeffstr = chop(toks[4]; head=1, tail=1) # remove [ and ]
+                    coeff = map(s -> parse(Float64, s), split(coeffstr, ','))
                 else
-                    println(newfile, "$line;$(floatmax())")
+                    coeff = Vector(undef, 0)
                 end
+                if nll < floatmax()
+                    sse = ExhaustiveSymbolicRegression.interpret(expr, X, coeff)
+                else
+                    sse = floatmax()
+                end
+                println(newfile, "$line;$(sse/length(x));$(length(coeff));$(exprlen);$(exprdepth)")
             end
         end
+    end
+end
+
+expr_len(val::Number) = 1
+expr_len(sy::Symbol) = 1
+expr_len(a::LineNumberNode) = 0
+function expr_len(expr::Expr)
+    if expr.head == :->
+        expr_len(expr.args[2])
+    elseif expr.head == :ref
+        1
+    else
+        @assert expr.head == :call || expr.head == :block dump(expr)
+        sum(expr_len, expr.args)
+    end
+end
+expr_depth(val::Number) = 1
+expr_depth(sy::Symbol) = 1
+expr_depth(a::LineNumberNode) = 0
+function expr_depth(expr::Expr)
+    if expr.head == :->
+        expr_depth(expr.args[2])
+    elseif expr.head == :block
+        maximum(map(expr_depth, expr.args))
+    elseif expr.head == :ref
+        1
+    else
+        @assert expr.head == :call dump(expr)
+        1 + maximum(map(expr_depth, expr.args))
     end
 end
 

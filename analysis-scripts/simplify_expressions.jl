@@ -5,6 +5,7 @@ using ExhaustiveSymbolicRegression # requires simplify_semantic_analysis branch
 function simplify_runs(folder; header = true, varnames=["x0", "x1"])
     for file in readdir(folder; join=true)
         if !isnothing(match(r"run[0-9]+.csv", file))
+            println(file)
             simplify_run(file, header=header, varnames=varnames)
         end
     end
