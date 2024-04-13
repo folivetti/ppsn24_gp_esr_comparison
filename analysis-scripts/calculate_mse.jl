@@ -3,10 +3,12 @@ using DataFrames, CSV
 
 # calculate MSE for ESR expressions
 function calculate_mse(filename)
+    # Nikuradse:
     df = CSV.read("/home/gkronber/ppsn24_gp_esr_comparison/datasets/nikuradse_2.csv", DataFrame)
-    x = df[:, 1]    
+    x = df[:, 1]
     y = df[:, 2]
     X = [x y]
+
     # structure:
     #> head ../results/esr/nikuradse_2_size10/fittingresults_nikuradse_ranked.txt
     # n;1;2;3;4;5;6;7;8;9;10
@@ -32,7 +34,8 @@ function calculate_mse(filename)
                     coeff = Vector(undef, 0)
                 end
                 if nll < floatmax()
-                    sse = ExhaustiveSymbolicRegression.interpret(expr, X, coeff)
+                    sse = ExhaustiveSymbolicRegression.interpret(expr, X, coeff) # for nikuradse
+                    # sse = 0 # for RAR we do not need SSE 
                 else
                     sse = floatmax()
                 end
@@ -41,6 +44,8 @@ function calculate_mse(filename)
         end
     end
 end
+
+is_abs(expr) = expr isa Expr && expr.head == :call && expr.args[1] == :abs
 
 expr_len(val::Number) = 1
 expr_len(sy::Symbol) = 1
@@ -52,7 +57,15 @@ function expr_len(expr::Expr)
         1
     else
         @assert expr.head == :call || expr.head == :block dump(expr)
-        sum(expr_len, expr.args)
+        if expr.args[1] == :^ && is_abs(expr.args[2])
+            # count pow(abs(..)) as only one Symbol
+            sum(expr_len, expr.args[2:end]) # sum the length of both arguments but do not include the power symbol
+        elseif expr.args[1] == :/ && (expr.args[2] == 1.0 || expr.args[2] == -1.0)
+            # count 1/... as one inv(...)
+            1 + sum(expr_len, expr.args[3:end])
+        else
+            sum(expr_len, expr.args)
+        end
     end
 end
 expr_depth(val::Number) = 1
@@ -67,7 +80,12 @@ function expr_depth(expr::Expr)
         1
     else
         @assert expr.head == :call dump(expr)
-        1 + maximum(map(expr_depth, expr.args))
+        if expr.args[1] == :^ && is_abs(expr.args[2])
+            # count pow(abs(..)) as only one Symbol
+            1 + maximum([expr_depth(expr.args[2]) - 1, expr_depth(expr.args[3])])
+        else
+            1 + maximum(map(expr_depth, expr.args))
+        end
     end
 end
 
