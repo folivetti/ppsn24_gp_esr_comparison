@@ -27,7 +27,8 @@ function simplify_run(filename; header=true, varnames=["x0", "x1"])
                 line = replace(line, "," => ";")
                 lineno += 1
                 if lineno == 1 && header
-                    println(newfile,"$line;parsedexpr;parsedhash;numparam;len;simplifiedexpr;simplifiedhash;simplifiednumparam;simplifiedlen;parsed_op_count")
+                    println(newfile,"$line;parsedexpr;parsedhash;numparam;len;simplifiedexpr;simplifiedhash;simplifiednumparam;simplifiedlen;" *
+                                    "parsed_op_add;parsed_op_sub;parsed_op_mul;parsed_op_div;parsed_op_pow;parsed_op_abs")
                 else
                     toks = split(line, ';')
                     gen = toks[1]
@@ -44,7 +45,9 @@ function simplify_run(filename; header=true, varnames=["x0", "x1"])
                     simplbody = simplexpr.args[2]
                     simplnumparam = length(simplcoeff)
                     simplen = expr_len(simplbody)
-                    println(newfile, "$line;$(ExhaustiveSymbolicRegression.tostring(body));$(hash(body));$numparam;$len;$(ExhaustiveSymbolicRegression.tostring(simplbody));$(hash(simplbody));$simplnumparam;$simplen;$opdict")
+                    println(newfile, "$line;$(ExhaustiveSymbolicRegression.tostring(body));$(hash(body));$numparam;$len;"*
+                                     "$(ExhaustiveSymbolicRegression.tostring(simplbody));$(hash(simplbody));$simplnumparam;$simplen;"*
+                                     "$(get(opdict, :+, 0));$(get(opdict, :-, 0));$(get(opdict, :*, 0));$(get(opdict, :/, 0));$(get(opdict, :^, 0));$(get(opdict, :abs, 0))")
                 end
             end
         end
@@ -70,21 +73,48 @@ function countop!(dict, expr::Expr)
     dict
 end
 
-expr_len(sy::Symbol) = 1
+
+
+is_abs(expr) = expr isa Expr && expr.head == :call && expr.args[1] == :abs
+
 expr_len(val::Number) = 1
+expr_len(sy::Symbol) = 1
+expr_len(a::LineNumberNode) = 0
 function expr_len(expr::Expr)
-    op = expr.head
-    if op == :ref # x[1] or p[1] have length 1
+    if expr.head == :->
+        expr_len(expr.args[2])
+    elseif expr.head == :ref
         1
-    elseif op == :call
-        # pow(abs(...), ...) is counted only as one operator
-        if expr.args[1] == :^
-            sum(expr_len, expr.args[2:end])     # ^ is not counted because abs is already counted instead
+    else
+        @assert expr.head == :call || expr.head == :block dump(expr)
+        if expr.args[1] == :^ && is_abs(expr.args[2])
+            # count pow(abs(..)) as only one Symbol
+            sum(expr_len, expr.args[2:end]) # sum the length of both arguments but do not include the power symbol
+        elseif expr.args[1] == :/ && (expr.args[2] == 1.0 || expr.args[2] == -1.0)
+            # count 1/... as one inv(...)
+            1 + sum(expr_len, expr.args[3:end])
         else
-            1 + sum(expr_len, expr.args[2:end]) # args[1] is the operator
+            sum(expr_len, expr.args)
         end
-    else 
-        println(expr)
-        error("unexpected case")        
+    end
+end
+expr_depth(val::Number) = 1
+expr_depth(sy::Symbol) = 1
+expr_depth(a::LineNumberNode) = 0
+function expr_depth(expr::Expr)
+    if expr.head == :->
+        expr_depth(expr.args[2])
+    elseif expr.head == :block
+        maximum(map(expr_depth, expr.args))
+    elseif expr.head == :ref
+        1
+    else
+        @assert expr.head == :call dump(expr)
+        if expr.args[1] == :^ && is_abs(expr.args[2])
+            # count pow(abs(..)) as only one Symbol
+            1 + maximum([expr_depth(expr.args[2]) - 1, expr_depth(expr.args[3])])
+        else
+            1 + maximum(map(expr_depth, expr.args))
+        end
     end
 end
