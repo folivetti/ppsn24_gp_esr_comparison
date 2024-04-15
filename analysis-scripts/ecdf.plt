@@ -216,8 +216,8 @@ plot '< cd ../results/rs/rar_size12 && bash prepare_ecdf.sh -1005' using 3:($1/5
      '< cd ../results/rar_size20 && bash prepare_ecdf.sh 1005 12'  using 2:($1/50) with step lc 1 dt "-" title "GP (20) NLL < -1005 & len<=12",\
      '< cd ../results/rs/rar_size12 && bash prepare_ecdf.sh -1010' using 3:($1/50) with step lc 2        title "RS (12) NLL < -1010",\
      '< cd ../results/rar_size20 && bash prepare_ecdf.sh 1010 12'  using 2:($1/50) with step lc 2 dt "-" title "GP (20) NLL < -1010 & len<=12",\
-     '< cd ../results/rs/rar_size12 && bash prepare_ecdf.sh -1013' using 3:($1/50) with step lc 2        title "RS (12) NLL < -1013",\
-     '< cd ../results/rar_size20 && bash prepare_ecdf.sh 1013 12'  using 2:($1/50) with step lc 2 dt "-" title "GP (20) NLL < -1013 & len<=12"
+     '< cd ../results/rs/rar_size12 && bash prepare_ecdf.sh -1013' using 3:($1/50) with step lc 3        title "RS (12) NLL < -1013",\
+     '< cd ../results/rar_size20 && bash prepare_ecdf.sh 1013 12'  using 2:($1/50) with step lc 3 dt "-" title "GP (20) NLL < -1013 & len<=12"
 
 set key tmargin
 set title "RAR len 12"
@@ -226,5 +226,5 @@ plot '< cd ../results/rs/rar_size12 && bash prepare_ecdf.sh -1005'     using 3:(
      '< cd ../results/rar_size20 && bash prepare_ecdf.sh 1005 100 12'  using 2:($1/50) with step lc 1 dt "-" title "GP (20) NLL < -1005 & len<=12",\
      '< cd ../results/rs/rar_size12 && bash prepare_ecdf.sh -1010'     using 3:($1/50) with step lc 2        title "RS (12) NLL < -1010",\
      '< cd ../results/rar_size20 && bash prepare_ecdf.sh 1010 100 12'  using 2:($1/50) with step lc 2 dt "-" title "GP (20) NLL < -1010 & len<=12",\
-     '< cd ../results/rs/rar_size12 && bash prepare_ecdf.sh -1013'     using 3:($1/50) with step lc 2        title "RS (12) NLL < -1013",\
-     '< cd ../results/rar_size20 && bash prepare_ecdf.sh 1013 100 12'  using 2:($1/50) with step lc 2 dt "-" title "GP (20) NLL < -1013 & len<=12"
+     '< cd ../results/rs/rar_size12 && bash prepare_ecdf.sh -1013'     using 3:($1/50) with step lc 3        title "RS (12) NLL < -1013",\
+     '< cd ../results/rar_size20 && bash prepare_ecdf.sh 1013 100 12'  using 2:($1/50) with step lc 3 dt "-" title "GP (20) NLL < -1013 & len<=12"

@@ -138,7 +138,7 @@ plot '< cd ../results/nikuradse_2_size20 && bash prepare_ecdf.sh -0.01'         
 # Nikuradse mixed lengths
 set key tmargin
 set title "Nikurase len 12"
-set output "../plots/nikuradse2_mixed_len_ecdf.pdf"
+set output "../plots/with_operon/nikuradse2_mixed_len_ecdf.pdf"
 plot '< cd ../results/rs/nikuradse_2_size12 && bash prepare_ecdf.sh 0.0015'         using 3:($1/50) with step lc 1        title "RS (12) MSE < 0.0015",\
      '< cd ../results/operon/nikuradse_2_size20 && bash prepare_ecdf.sh -0.0015 12' using 2:($1/50) with step lc 1 dt "." title "Operon (20) MSE < 0.0015 & len<=12",\
      '< cd ../results/nikuradse_2_size20 && bash prepare_ecdf.sh -0.0015 12'        using 2:($1/50) with step lc 1 dt "-" title "GP (20) MSE < 0.0015 & len<=12",\
@@ -148,10 +148,10 @@ plot '< cd ../results/rs/nikuradse_2_size12 && bash prepare_ecdf.sh 0.0015'     
 
 set key tmargin
 set title "Nikurase len 12"
-set output "../plots/nikuradse2_mixed_simplifiedlen_ecdf.pdf"
+set output "../plots/with_operon/nikuradse2_mixed_simplifiedlen_ecdf.pdf"
 plot '< cd ../results/rs/nikuradse_2_size12 && bash prepare_ecdf.sh 0.0015'             using 3:($1/50) with step lc 1        title "RS (12) MSE < 0.0015",\
-     '< cd ../results/operon/nikuradse_2_size20 && bash prepare_ecdf.sh -0.0015 100 12' using 2:($1/50) with step lc 1 dt "." title "Operon (20) MSE < 0.0015 & simpllen<=12",\
-     '< cd ../results/nikuradse_2_size20 && bash prepare_ecdf.sh -0.0015 100 12'        using 2:($1/50) with step lc 1 dt "-" title "GP (20) MSE < 0.0015 & simpllen<=12",\
+     '< cd ../results/operon/nikuradse_2_size20 && bash prepare_ecdf.sh -0.0015 100 13' using 2:($1/50) with step lc 1 dt "." title "Operon (20) MSE < 0.0015 & simpllen<=13",\
+     '< cd ../results/nikuradse_2_size20 && bash prepare_ecdf.sh -0.0015 100 13'        using 2:($1/50) with step lc 1 dt "-" title "GP (20) MSE < 0.0015 & simpllen<=13",\
      '< cd ../results/rs/nikuradse_2_size12 && bash prepare_ecdf.sh 0.002'              using 3:($1/50) with step lc 2        title "RS (12) MSE < 0.002",\
-     '< cd ../results/operon/nikuradse_2_size20 && bash prepare_ecdf.sh -0.002 100 12'  using 2:($1/50) with step lc 2 dt "." title "Operon (20) MSE < 0.002 & simpllen<=12",\
-     '< cd ../results/nikuradse_2_size20 && bash prepare_ecdf.sh -0.002 100 12'         using 2:($1/50) with step lc 2 dt "-" title "GP (20) MSE < 0.002 & simpllen<=12"
+     '< cd ../results/operon/nikuradse_2_size20 && bash prepare_ecdf.sh -0.002 100 13'  using 2:($1/50) with step lc 2 dt "." title "Operon (20) MSE < 0.002 & simpllen<=13",\
+     '< cd ../results/nikuradse_2_size20 && bash prepare_ecdf.sh -0.002 100 13'         using 2:($1/50) with step lc 2 dt "-" title "GP (20) MSE < 0.002 & simpllen<=13"
