@@ -1,18 +1,28 @@
-set terminal pdf
+# set terminal pdf
+# extension='.pdf'
+
+set terminal cairolatex pdf input  size 6cm,4cm header "\\footnotesize"
+extension=".tex"
+
+# for testing
+#set terminal pdfcairo  font ", 9" size 6cm,4cm
+#extension=".pdf"
+
 
 set datafile separator ';'
 # set key autotitle columnhead # skip first line
 
-set xlabel 'fraction of expressions'
+set xlabel 'Fraction of expressions'
 set ylabel 'MSE'
 
 set logscale x
 set format x "%g"
+set xtics 1e-6,100,1
 set yrange [0:0.1]
 
 set key top left
 # nll over rank
-set output '../plots/nikuradse_2_len10_distr.pdf'
+set output '../plots/nikuradse_2_len10_distr' . extension
 file_niku_10='< mlr --fs '';'' --csv --implicit-csv-header --headerless-csv-output --from ../results/esr/nikuradse_2_size10/fittingresults_nikuradse_ranked_mse.txt.gz sort -n 12 then cat -n'
 # set xrange[-1000:700]
 
@@ -26,35 +36,38 @@ file_niku_10='< mlr --fs '';'' --csv --implicit-csv-header --headerless-csv-outp
 
 stats file_niku_10 using 1:13 name 'nikuradse10' nooutput
 set arrow 1 from 0.06,0.06301759103812457 to 1,0.06301759103812457 nohead dt '.'
-set label 1 "p_1" at 0.2,0.067
+set label 1 "$p_1$" at 0.8,0.07 right
 set arrow 2 from 0.006,0.01884 to 1,0.01884 nohead dt '.'
-set label 2 "p_1^{x p_2^x}" at 0.2, 0.022 
+set label 2 "$p_1^{x p_2^x}$" at 0.8, 0.026  right
 plot file_niku_10 using ($1/(nikuradse10_records + nikuradse10_outofrange)):13 with lines title "ESR"
 
-set output '../plots/nikuradse_2_len12_distr.pdf'
+set output '../plots/nikuradse_2_len12_distr' . extension
 file_niku_12 = '< mlr --fs '';'' --csv --implicit-csv-header --headerless-csv-output --from ../results/esr/nikuradse_2_size12/fittingresults_nikuradse_ranked_mse.txt.gz sort -n 12 then cat -n'
 stats file_niku_12 using 1:13 name 'nikuradse12' nooutput
 plot file_niku_12 using ($1/(nikuradse12_records + nikuradse12_outofrange)):13  with lines title "ESR"
 
 # curves for both lengths in a single plot
-set output '../plots/nikuradse_2_distr.pdf'
-plot file_niku_10 using ($1/(nikuradse10_records + nikuradse10_outofrange)):13 with lines title "ESR len=10",\
-     file_niku_12 using ($1/(nikuradse12_records + nikuradse12_outofrange)):13 with lines title "ESR len=12"
+set output '../plots/nikuradse_2_distr' . extension
+plot file_niku_10 using ($1/(nikuradse10_records + nikuradse10_outofrange)):13 with lines title "len=10",\
+     file_niku_12 using ($1/(nikuradse12_records + nikuradse12_outofrange)):13 with lines title "len=12"
 
+unset ylabel 
 set yrange [0:0.01]
+set xrange [1e-6:0.01]
 # curves for both lengths in a single plot
-set output '../plots/nikuradse_2_distr_zoom.pdf'
-plot file_niku_10 using ($1/(nikuradse10_records + nikuradse10_outofrange)):13 with lines title "ESR len=10",\
-     file_niku_12 using ($1/(nikuradse12_records + nikuradse12_outofrange)):13 with lines title "ESR len=12"
+set output '../plots/nikuradse_2_distr_zoom' . extension
+plot file_niku_10 using ($1/(nikuradse10_records + nikuradse10_outofrange)):13 with lines notitle,\
+     file_niku_12 using ($1/(nikuradse12_records + nikuradse12_outofrange)):13 with lines notitle
 
 unset arrow 1
 unset label 1
 unset arrow 2
 unset label 2
 
+unset xrange
 set key bottom left
 set ylabel "LogLik"
-set output '../plots/rar_len10_distr.pdf'
+set output '../plots/rar_len10_distr' . extension
 ## simple solutions for RAR
 # 2520;p1 * abs(x) ^ p2;-906.4884220047759;[1.8235845411241511, 0.6667610774662592, 0.08588861167123577, -0.5034648298302491, 0.7419886688553087];7813;7811;103;13;0;95;13.27649652;0.0;5;5;3
 # 4576;p1 * x + p2;-648.116916370563;[1.5405325322551837, 0.1881927938776106, -0.10645502913939864, -0.5029976709598329, 0.730362538158277];11348;11346;143;4;0;95;15.172699798;0.0;5;5;3
@@ -67,34 +80,39 @@ rar10file = '< zcat ../results/esr/rar_size10/fittingresults_rar_ranked_mse.txt.
 set yrange [0:1100]
 stats rar10file using 1:3 name 'rar10' nooutput
 set arrow 1 from 0.02,906.5 to 1,906.5 nohead dt '.'
-set label 1 "p_1 x^{p_2}" at 0.15, 950
+set label 1 "$p_1\\, x^{p_2}$" at 0.02, 906.5 right
 set arrow 2 from 0.02,648.11 to 1,648.11 nohead dt '.'
-set label 2 "p_1 x + p_2" at 0.15,700
+set label 2 "$p_1\\, x + p_2$" at 0.02,648.11 right
 set arrow 3 from 0.02,244 to 1,244 nohead dt '.'
-set label 3 "p_1 + x" at 0.15, 290
+set label 3 "$p_1 + x$" at 0.02,244 right
 
 plot rar10file using ($1/(rar10_records + rar10_outofrange)):(-$3) with lines title "ESR"
 
-set output '../plots/rar_len12_distr.pdf'
+set output '../plots/rar_len12_distr' . extension
 rar12file='< zcat ../results/esr/rar_size12/fittingresults_rar_ranked_mse.txt.gz'
 stats rar12file using 1:3 name 'rar12' nooutput
 plot rar12file using ($1/(rar12_records + rar12_outofrange)):(-$3) with lines title "ESR"
 
 # curves for both lengths in a single plot
-set output '../plots/rar_distr.pdf'
-plot rar10file using ($1/(rar10_records + rar10_outofrange)):(-$3) with lines title "ESR len=10",\
-     rar12file using ($1/(rar12_records + rar12_outofrange)):(-$3) with lines title "ESR len=12"
+set output '../plots/rar_distr' . extension
+plot rar10file using ($1/(rar10_records + rar10_outofrange)):(-$3) with lines notitle,\
+     rar12file using ($1/(rar12_records + rar12_outofrange)):(-$3) with lines notitle
 
-set yrange [950:1050]
-set output '../plots/rar_distr_zoom.pdf'
-plot rar10file using ($1/(rar10_records + rar10_outofrange)):(-$3) with lines title "ESR len=10",\
-     rar12file using ($1/(rar12_records + rar12_outofrange)):(-$3) with lines title "ESR len=12"
+unset label 1
+unset label 2
+unset label 3
+set yrange [960:1020]
+unset ylabel
+set output '../plots/rar_distr_zoom' . extension
+plot rar10file using ($1/(rar10_records + rar10_outofrange)):(-$3) with lines title "len=10",\
+     rar12file using ($1/(rar12_records + rar12_outofrange)):(-$3) with lines title "len=12",
 
 set yrange [0:1100]
 unset logscale x
-set output '../plots/rar_distr_yscale.pdf'
-plot rar10file using ($1/(rar10_records + rar10_outofrange)):(-$3) with lines title "ESR len=10",\
-     rar12file using ($1/(rar12_records + rar12_outofrange)):(-$3) with lines title "ESR len=12"
+set key top right
+set output '../plots/rar_distr_yscale' . extension
+plot rar10file using ($1/(rar10_records + rar10_outofrange)):(-$3) with lines title "len=10",\
+     rar12file using ($1/(rar12_records + rar12_outofrange)):(-$3) with lines title "len=12"
 unset logscale y
 unset yrange
 unset xrange
@@ -113,7 +131,7 @@ unset logscale y
 set xlabel "x"
 set ylabel "y"
 set samples 10000
-set output '../plots/nikuradse_2_len10.pdf'
+set output '../plots/nikuradse_2_len10' . extension
 
 # ESR:
 # n;1;2;3;4;5;6;7;8;9;10
@@ -149,7 +167,7 @@ esr_nikuradse2_12_2(x)=-1.927580429721346 / (abs(x) ** -x - 4.042534139013752 **
 esr_nikuradse2_12_3(x)=2.1599179109043236 - abs(-2.101400095710107 + -1.0 / (-0.3724608457307987 - 0.0954766211313884 ** x)) ** 1.4308150149465624
 
 
-set output '../plots/nikuradse_2_len12.pdf'
+set output '../plots/nikuradse_2_len12' . extension
 plot '../datasets/nikuradse_2.csv' using 1:2 with dots title "data",\
      esr_nikuradse2_12_1(x) with line title "ESR 1",\
      esr_nikuradse2_12_2(x) with line title "ESR 2",\
@@ -180,7 +198,7 @@ gp_rar_10_4(x0)=(abs(x0)**(0.5003174451099224)) + (abs((0.7216825740524412) * (x
 gp_rar_10_5(x0)=((abs(x0)**(1.008494716493644)) * (-0.7211691072894346)) - (abs(x0)**(0.5005351092094006))# ;999.313904319557
 
 
-set output '../plots/rar_len10.pdf'
+set output '../plots/rar_len10' . extension
 plot '../datasets/RAR.csv' using 1:2 with dots title "data",\
      esr_rar_10_1(x) with line title "ESR 1",\
      esr_rar_10_2(x) with line title "ESR 2",\
@@ -210,7 +228,7 @@ gp_rar_12_4(x0)=(abs(x0)**(0.500805723850005)) + ((((x0) * (0.003729440387123734
 gp_rar_12_5(x0)=((abs(x0)**(abs(x0)**(0.009973006888630193))) * (0.7103373454583255)) + (abs(x0)**(0.5056696172350481)) # ;1000.3083447583384
 
 
-set output '../plots/rar_len12.pdf'
+set output '../plots/rar_len12' . extension
 plot '../datasets/RAR.csv' using 1:2 with dots title "data",\
      esr_rar_12_1(x) with line title "ESR 1",\
      esr_rar_12_2(x) with line title "ESR 2",\
@@ -229,7 +247,7 @@ gp_rar_20_3(x0)=(abs(((1.1478144138740694) / (x0)) + ((x0) / (abs((x0) + (1/(1/(
 gp_rar_20_4(x0)=((x0) * (1.047444498466007)) + ((abs(-0.7599258838109894)**(x0)) * (abs((0.7780900274477337) * (x0))**(0.4841948791000158)))#;1002.9799779316046
 gp_rar_20_5(x0)=(((abs(x0)**(0.41662314343949985)) + (x0)) / (abs(((((-1.3684231303494516) * (x0)) + (x0)) + (1.3618529284816028)) + (x0))**(1.4792386340777637))) + (x0)#;1002.8964125207594
 
-set output '../plots/rar_len20.pdf'
+set output '../plots/rar_len20' . extension
 plot '../datasets/RAR.csv' using 1:2 with dots title "data",\
      gp_rar_20_1(x) with line title "GP 1",\
      gp_rar_20_2(x) with line title "GP 2",\
