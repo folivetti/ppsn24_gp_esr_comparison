@@ -1,7 +1,7 @@
 # set terminal pdf
 # extension=".pdf"
 
-set terminal cairolatex pdf input size 12cm,5cm header "\\footnotesize"
+set terminal cairolatex pdf input size 12cm,4cm header "\\footnotesize"
 extension=".tex"
 
 # for testing
@@ -12,7 +12,7 @@ extension=".tex"
 set datafile separator ';'
 set key autotitle columnhead # skip first line
 
-set xlabel "# visited expressions"
+set xlabel "Visited expressions"
 set ylabel "Success probability"
 set logscale x
 
@@ -20,7 +20,7 @@ set logscale x
 set key rmargin
 
 set output "../plots/rar_ecdf" . extension
-set multiplot layout 1,2 margins 0.1, 0.7, 0.15, 0.9 spacing 0.02,0
+set multiplot layout 1,2 margins 0.1, 0.7, 0.2, 0.85 spacing 0.02,0
 set xrange[10:100000]
 set xtics 10,10,90000
 unset key
@@ -55,6 +55,8 @@ unset multiplot
 
 
 # RAR mixed lengths
+set ytics
+set ylabel "Success probability"
 set key rmargin
 set rmargin at screen 0.8
 set title "RAR len 12"
@@ -150,7 +152,7 @@ unset rmargin
 # # LEN 20
 # set xrange[100:2000000]
 # 
-# set xlabel "# visited expressions"
+# set xlabel "Visited expressions"
 # set title "RAR len 20"
 # set output "../plots/rar_len20_ecdf" . extension
 # # rank;run;nevals;expr;nll;coeff;nll 
@@ -161,12 +163,15 @@ unset rmargin
 set xrange[10:100000]
 set xtics 10,10,90000
 
+set terminal cairolatex pdf input size 12cm,5.5cm header "\\footnotesize"
+extension=".tex"
+
 set output "../plots/nikuradse2_ecdf" . extension
-set multiplot layout 1,2 margins 0.1, 0.7, 0.15, 0.9 spacing 0.02,0
+set multiplot layout 1,2 margins 0.1, 0.7, 0.2, 0.85 spacing 0.02,0
 # GP based on mse
 set title "Nikuradse len=10"
 set ylabel "Success probability"
-set xlabel "visited expressions"
+set xlabel "Visited expressions"
 unset key
 plot '< cd ../results/nikuradse_2_size10 && bash prepare_ecdf.sh -0.02'         using 2:($1/50) with step lc 1 lw 2        title "GP, 0.02",\
      '< cd ../results/nikuradse_2_size10 && bash prepare_ecdf.sh -0.01'         using 2:($1/50) with step lc 2 lw 2        title "GP, 0.01",\

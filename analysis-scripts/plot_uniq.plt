@@ -1,7 +1,7 @@
 #set terminal pdf
 #extension = ".pdf"
 
-set terminal cairolatex pdf input size 12cm,9cm header "\\footnotesize"
+set terminal cairolatex pdf input size 12cm,7cm header "\\footnotesize"
 extension=".tex"
 
 ## for testing
@@ -69,7 +69,7 @@ set xtics 5000,50000,100000
 plot '< mlr --csv --fs '';'' --from ../results/nikuradse_2_size20/run1_simplified.csv.gz stats1 -s -a distinct_count -f individual_index,expression,parsedhash,simplifiedhash then cut -f expression_distinct_count,parsedhash_distinct_count,simplifiedhash_distinct_count' using 0:($1/125000) with lines title 'distinct expr',\
      '' using 0:($2/125000) with lines title "distinct structures",\
      '' using 0:($3/125000) with lines title "distinct structures (simplified)",\
-     '< mlr --csv --fs '';'' --from ../results/nikuradse_2_size20/run1_simplified.csv.gz put ''$p1_count = $simplifiedhash == 16109576223594199635 ? 1.0 : 0.0'' then stats1 -a sum -f p1_count -s' using 0:(column("p1_count_sum")/25000) with lines  dt '.' lc 'black' title 'p1 evaluations'
+     '< mlr --csv --fs '';'' --from ../results/nikuradse_2_size20/run1_simplified.csv.gz put ''$p1_count = $simplifiedhash == 16109576223594199635 ? 1.0 : 0.0'' then stats1 -a sum -f p1_count -s' using 0:(column("p1_count_sum")/125000) with lines  dt '.' lc 'black' title 'p1 evaluations'
 
 unset xrange 
 unset xtics
@@ -135,7 +135,7 @@ set xtics 5000,50000,100000
 plot '< mlr --csv --fs '';'' --from ../results/rar_size20/run1_simplified.csv.gz stats1 -s -a distinct_count -f individual_index,expression,parsedhash,simplifiedhash then cut -f expression_distinct_count,parsedhash_distinct_count,simplifiedhash_distinct_count' using 0:($1/125000) with lines title 'distinct expr',\
      '' using 0:($2/125000) with lines title "distinct structures",\
      '' using 0:($3/125000) with lines title "distinct structures (simplified)",\
-     '< mlr --csv --fs '';'' --from ../results/rar_size20/run1_simplified.csv.gz put ''$p1_count = $simplifiedhash == 16109576223594199635 ? 1.0 : 0.0'' then stats1 -a sum -f p1_count -s' using 0:(column("p1_count_sum")/25000) with lines  dt '.' lc 'black' title 'p1 evaluations'
+     '< mlr --csv --fs '';'' --from ../results/rar_size20/run1_simplified.csv.gz put ''$p1_count = $simplifiedhash == 16109576223594199635 ? 1.0 : 0.0'' then stats1 -a sum -f p1_count -s' using 0:(column("p1_count_sum")/125000) with lines  dt '.' lc 'black' title 'p1 evaluations'
 
 unset xrange 
 unset xtics
