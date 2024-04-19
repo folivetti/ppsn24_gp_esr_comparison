@@ -9,7 +9,7 @@ do
     for id in $(seq 1 50)
     do
         echo -n "${case#.*/};${id};"
-        cat ${case}/run${id}.csv \
+        zcat ${case}/run${id}.csv.gz \
             | sed 's/inf/999999999/g' \
             | mlr --csv --ifs ',' --ofs ';' --headerless-csv-output \
                   sort -nr fitness \
@@ -27,7 +27,7 @@ do
     echo "${case}"
     for id in $(seq 1 50)
     do
-        cat ${case}/run${id}.csv \
+        zcat ${case}/run${id}.csv.gz \
             | sed 's/inf/999999999/g' \
 	    | sed 's/,expr,/,expression,/g' \
             | mlr --csv --ifs ',' --ofs ';' --headerless-csv-output \
