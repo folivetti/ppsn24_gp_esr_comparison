@@ -9,8 +9,8 @@ echo "0;0;0;0;dummy;${threshold};${lenlimit};${simpllenlimit}"
 
 for file in run*_simplified.csv.gz
 do
-    # generation;individual_index;expression;fitness;nodes;parsedexpr;parsedhash;numparam;len;simplifiedexpr;simplifiedhash;simplifiednumparam;simplifiedlen;parsed_op_count
-    # 0;0;1/((-0.26595730397677475) - ((2.7116813703780163) * (x0)));-4.57237587802604;6;1.0 / (p1 - p2 * x1);13649221981342618844;2;7;p1 / (p2 + x1);13889272278406549869;2;5;Dict{Symbol, Int32}(:/ => 1, :- => 1, :* => 1)
+    # generation;individual_index;expression;fitness;nodes;parsedexpr;parsedhash;numparam;len;simplifiedexpr;simplifiedhash;simplifiednumparam;simplifiedlen;parsed_op_add;parsed_op_sub;parsed_op_mul;parsed_op_div;parsed_op_pow;parsed_op_abs
+    # 0;0;abs(1/(0.5502373178387527))**((x0) - ((-0.18081925656718956) + (1.459317978048097)));-1301.41087224514;8;abs(1.0 / p1) ^ (x1 - (p2 + p3));1136530595201969594;3;8;p1 ^ (p2 + x1);15570590691227934858;2;5;1;1;0;1;1;1
     mlr --headerless-csv-output --csv --fs ';' --from ${file} \
          cat -n \
          then filter "float(\$fitness) > ${threshold} &&  \$nodes <= ${lenlimit} && \$simplifiedlen <= ${simpllenlimit}" \

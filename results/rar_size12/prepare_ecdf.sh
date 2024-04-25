@@ -5,7 +5,7 @@ threshold=${1:-1000} # set threshold or use 1000 as default
 echo "rank;rownum;generation;idx;expr;fitness;nodes"
 echo "0;0;0;0;dummy;${threshold};0"
 
-for file in run*.csv
+for file in run*.csv.gz
 do
     # generation,individual_index,expression,fitness,nodes
     # 0,0,1/((abs(x0)**(-0.05962666974686582)) / ((1.2706606520639872) - (-0.4981652116233919))),-0.05093312902550394,8

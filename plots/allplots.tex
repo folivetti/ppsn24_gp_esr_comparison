@@ -1,0 +1,73 @@
+\documentclass{article}
+\usepackage{xcolor}
+\usepackage{graphicx}
+
+% this document contains all plots including those that do not occur in the paper or the supplement.
+\begin{document}
+\input{sr-scaling}
+
+\section{Nikuradse}
+\input{nikuradse_2_distr}
+
+\input{nikuradse_2_len10}
+
+\input{nikuradse_2_len12}
+
+\input{nikuradse_2_len20}
+
+
+\input{with_operon/nikuradse2_ecdf}
+
+\input{with_operon/nikuradse2_ecdf_fevals}
+
+\input{with_operon/nikuradse2_ecdf_restarts}
+
+\begin{figure}
+    \input{with_operon/nikuradse2_len20_ecdf}
+    \caption{Comparison of success rates for TinyGP and Operon with maximum length 20. Operon finds better expressions faster.}
+\end{figure}
+
+\begin{figure}
+    \input{with_operon/nikuradse2_mixed_len_ecdf}
+    \caption{TinyGP and Operon with maximum length 20 but filtering expressions and simplified expressions of maximum length 12.}
+\end{figure}
+
+\begin{figure}
+    \input{with_operon/nikuradse2_mixed_len13_ecdf}
+    \caption{TinyGP and Operon with maximum length 20 but filtering expressions and simplified expressions of maximum length 13.}
+\end{figure}
+
+
+
+\begin{figure}
+\input{nikuradse_2_run1_uniq}
+\caption{TinyGP unique expressions.}
+\end{figure}
+
+\begin{figure}
+\input{nikuradse_2_run1_operon_uniq}
+\caption{Operon unique expressions.}
+\end{figure}
+
+\section{RAR}
+\input{rar_distr}
+
+\input{rar_len10}
+
+\input{rar_len12}
+
+\input{rar_len20}
+
+
+
+\input{rar_ecdf}
+
+\input{rar_ecdf_fevals}
+
+\input{rar_ecdf_restarts}
+
+\input{rar_mixed_len_ecdf}
+
+\input{rar_run1_uniq}
+
+\end{document}
