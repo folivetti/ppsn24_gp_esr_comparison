@@ -272,6 +272,7 @@ def optimize(individual, ds):
 
     sol = minimize(fun, t0, options = {'maxiter' : 10})
     individual.set_params(sol.x)
+    #print("NIT: ", sol.nit)
     return sol.x
 
 def fitness(individual, ds):

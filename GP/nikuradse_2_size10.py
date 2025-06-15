@@ -14,11 +14,12 @@ import numpy as np
 from scipy.optimize import minimize
 import pandas as pd
 from collections import defaultdict
+import sys
 
 POP_SIZE        = 100   # population size
 MIN_DEPTH       = 2    # minimal initial random tree depth
 MAX_DEPTH       = 4    # maximal initial random tree depth
-GENERATIONS     = 250  # maximal number of generations to run evolution
+GENERATIONS     = 500  # maximal number of generations to run evolution
 TOURNAMENT_SIZE = 2    # size of tournament for tournament selection
 XO_RATE         = 1.0  # crossover rate
 PROB_MUTATION   = 0.25  # per-node mutation probability
@@ -247,7 +248,13 @@ def optimize(individual, ds):
         yhat = individual.compute_tree(ds[:,0], theta)[0]
         return np.mean((yhat-ds[:,-1])**2)
 
-    sol = minimize(fun, t0, options = {'maxiter' : 10})
+    #sol = None
+    sol = minimize(fun, t0, options = {'maxiter' : 50})
+    #for i in range(1):
+    #    sol_t = minimize(fun, t0, options = {'maxiter' : 30}, method='cg')
+    #    if sol is None or sol_t.fun < sol.fun:
+    #        sol = sol_t
+
     individual.set_params(sol.x)
     return sol.x
 
@@ -296,7 +303,8 @@ def report(population, fitnesses, ds, gen):
 
 def main():
     #dataset = generate_dataset()
-    dataset = pd.read_csv("../datasets/nikuradse_2.tsv.gz", delimiter="\t").values
+    dataset = pd.read_csv("../datasets/nikuradse_2.csv").values #, delimiter="\t").values
+    #dataset = pd.read_csv("../datasets/192_vineyard.tsv.gz", delimiter="\t").values #, delimiter="\t").values
     population, fitnesses = init_population(dataset)
     #fitnesses = [fitness(individual, dataset) for individual in population]
     best_of_run_f = max(fitnesses)
@@ -304,6 +312,16 @@ def main():
     best_of_run_gen = 0
 
     print("generation,individual_index,expression,fitness,nodes")
+
+    #t0 = GPTree('p')
+    #t1 = GPTree('p')
+    #t2 = GPTree('p')
+    #t0.val = 1.3
+    #t1.val = -2.7
+    #t2.val = -1.11
+    #t = GPTree(pow, t0, GPTree(pow, GPTree(mul, t1, GPTree('x0')), GPTree(pow, GPTree("x0"), t2)))
+    #print(fitness(t, dataset))
+    #abs(1.3069645736413542)**(abs((-2.7167335871311873) * (x0))**(abs(x0)**(-1.1124274402250365)))
 
     # go evolution!
     for gen in range(GENERATIONS):
@@ -321,6 +339,7 @@ def main():
             fitnesses[worst] = best_of_run_f
 
     report(population, fitnesses, dataset, gen)
+    #print("best", best_of_run_f)
 
 if __name__== "__main__":
   main()

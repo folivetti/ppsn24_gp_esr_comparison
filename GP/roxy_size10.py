@@ -11,10 +11,10 @@
 # TODO: two variables, roxy
 from copy import deepcopy
 import numpy as np
-from scipy.optimize import minimize
+from scipy.optimize import minimize, approx_fprime
 import pandas as pd
 from collections import defaultdict
-import numba
+#import numba
 
 POP_SIZE        = 100   # population size
 MIN_DEPTH       = 2    # minimal initial random tree depth
@@ -242,13 +242,14 @@ def init_population(rar): # ramped half-and-half
             grow = not grow
     return pop, fits
 
-@numba.jit(nopython=True)
+#@numba.jit(nopython=True)
 def negloglike_mnr(xobs, yobs, xerr2, yerr2, f, fprime, sig, mu_gauss, w_gauss):
     N = len(xobs)
 
     w_gaus2 = np.square(w_gauss)
     s2 = yerr2 + np.square(sig)
     den = np.square(fprime) * w_gaus2 * xerr2 + s2 * (w_gaus2 + xerr2)
+
 
     neglogP = 0.5 * np.sum(
           np.log(2 * np.pi)
@@ -267,11 +268,14 @@ def optimize(individual, rar):
         f_w = np.log10(np.abs(f))
         fprime_w = fprime / (np.log(10)*f) * rar['gbar'].values * np.log(10)
 
-        return negloglike_mnr(rar['gbar_log'].values, rar['gobs_log'].values, rar['e_gbar_log_2'].values, rar['e_gobs_log_2'].values, f_w, fprime_w, *leftovers)
+        nll = negloglike_mnr(rar['gbar_log'].values, rar['gobs_log'].values, rar['e_gbar_log_2'].values, rar['e_gobs_log_2'].values, f_w, fprime_w, *leftovers)
+        print(theta, nll)
+        return nll
 
     #print(t0, fun(t0))
     #sol = minimize(fun, t0, options = {'maxiter' : 10}, method='L-BFGS-B')
-    sol = minimize(fun, t0, options = {'maxiter' : 10}) 
+    #print(approx_fprime(t0, fun))
+    sol = minimize(fun, t0, options = {'maxiter' : 10})
     individual.set_params(sol.x)
     #print(sol.x, fun(sol.x))
     return sol.x
@@ -279,6 +283,7 @@ def optimize(individual, rar):
 def fitness(individual, rar):
     if individual.size() > MAX_SIZE:
         return -np.inf
+
     t = optimize(individual, rar)
 
     f, leftovers, fprime = individual.compute_tree_diff(rar['gbar'].values, t)
@@ -331,7 +336,12 @@ def main():
     rar['e_gbar_log_2'] = np.square(rar['e_gbar'] / (rar['gbar'] * np.log(10)))
     rar['e_gobs_log_2'] = np.square(rar['e_gobs'] / (rar['gobs'] * np.log(10)))
 
-    t = GPTree(add, left=GPTree(inv, left=GPTree(mul, left=GPTree(pow, left=GPTree('p',val=-1.068237475099997), right=GPTree(pow, GPTree('x0'), GPTree('x0'))), right=GPTree(pow, left=GPTree('x0'), right=GPTree('p', val=-0.504897963565596)))), right=GPTree('x0'))
+    #t = GPTree(add, left=GPTree(inv, left=GPTree(mul, left=GPTree(pow, left=GPTree('p',val=-1.068237475099997), right=GPTree(pow, GPTree('x0'), GPTree('x0'))), right=GPTree(pow, left=GPTree('x0'), right=GPTree('p', val=-0.504897963565596)))), right=GPTree('x0'))
+    t = GPTree(sub, left=GPTree('x0'), right=GPTree(pow, GPTree('p', val=1.39e-5), GPTree(sub, GPTree('p', val=0.911), GPTree(pow, GPTree('x0'), GPTree('p', val=0.0722)))))
+    t = GPTree(inv, GPTree(add, GPTree('p', val=0.018), GPTree(pow, GPTree(add, GPTree('p', val=-0.276), GPTree(pow, GPTree('x0'), GPTree('p', val=-0.297))), GPTree('p', val=1.752))))
+
+    t.set_params([0.02, -0.2, -0.3, 1.8, 0.08, -0.5, 0.7])
+
     fi = fitness(t, rar)
     report([t],[fi],0)
     '''
