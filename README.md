@@ -7,6 +7,8 @@ This analysis is made possible by improved algorithms for equality saturation, w
 For our experiments we use two real-world datasets, where symbolic regression has been used to produce well-fitting univariate expressions.
 The results show that genetic programming in such limited settings explores only a small fraction of all unique expressions, and evaluates expressions repeatedly that are congruent to already visited expressions. 
 
+[Supplement (PDF)](./PDF/Supplement%20-%20The_Inefficiency_of_Genetic_Programming_for_Symbolic_Regression.pdf)
+
 ## Organization of the repository
 
 `GP`:  scripts with the adaptation of TinyGP to support univariate functions, parameter optimization and more than one variable
